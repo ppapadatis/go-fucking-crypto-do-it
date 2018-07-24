@@ -1,10 +1,10 @@
 const assert = require('assert');
 const ganache = require('ganache-cli');
 const Web3 = require('web3');
-const web3 = new Web3(ganache.provider());
-
 const compiledFactory = require('../ethereum/build/TaskFactory.json');
 const compiledTask = require('../ethereum/build/Task.json');
+
+const web3 = new Web3(ganache.provider());
 
 let accounts;
 let factory;
@@ -63,14 +63,28 @@ describe('Task Tests', () => {
       gas: '1000000'
     });
 
-    const hasConfirmed = await task.methods.request
-      .approvals(accounts[1])
-      .call();
-    assert(hasConfirmed);
+    const request = await task.methods.request().call();
+    assert(request.approvalsCount > 0);
   });
 
   it('allows procrastinator to withdraw his stake', async () => {
-    // todo
+    await task.methods.setSupervisor(accounts[1]).send({
+      from: accounts[0],
+      gas: '1000000'
+    });
+
+    await task.methods.confirmCompleteRequest().send({
+      from: accounts[1],
+      gas: '1000000'
+    });
+
+    await task.methods.finalizeCompleteRequest().send({
+      from: accounts[0],
+      gas: '1000000'
+    });
+
+    const request = await task.methods.request().call();
+    assert(request.complete);
   });
 
   it('processes requests', async () => {
