@@ -36,6 +36,9 @@ module.exports = {
       vue$: 'vue/dist/vue'
     }
   },
+  resolveLoader: {
+    moduleExtensions: ['-loader']
+  },
   devServer: {
     historyApiFallback: true,
     noInfo: true
