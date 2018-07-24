@@ -88,18 +88,64 @@ describe('Task Tests', () => {
   });
 
   it('processes requests', async () => {
-    // todo
+    let startBalance = await web3.eth.getBalance(accounts[0]);
+    startBalance = web3.utils.fromWei(startBalance, 'ether');
+    startBalance = parseFloat(startBalance);
+
+    await task.methods.setSupervisor(accounts[1]).send({
+      from: accounts[0],
+      gas: '1000000'
+    });
+
+    await task.methods.confirmCompleteRequest().send({
+      from: accounts[1],
+      gas: '1000000'
+    });
+
+    await task.methods.finalizeCompleteRequest().send({
+      from: accounts[0],
+      gas: '1000000'
+    });
+
+    let endBalance = await web3.eth.getBalance(accounts[0]);
+    endBalance = web3.utils.fromWei(endBalance, 'ether');
+    endBalance = parseFloat(endBalance);
+
+    assert(startBalance.toFixed(1) == endBalance.toFixed(1));
   });
 
   it('returns the summary when requested', async () => {
-    // todo
+    const summary = await task.methods.getSummary().call();
+    assert.equal(summary[2], accounts[0]);
   });
 
   it('requires a minimum stake', async () => {
-    // todo
+    try {
+      await factory.methods
+        .createTask('fail creation due to low stake', '1563896088')
+        .send({
+          from: accounts[0],
+          value: web3.utils.toWei('1', 'finney'),
+          gas: '1000000'
+        });
+      assert(false);
+    } catch (err) {
+      assert(err);
+    }
   });
 
   it('requires a minimum date', async () => {
-    // todo
+    try {
+      await factory.methods
+        .createTask('fail creation due to invalid date', '1500892600')
+        .send({
+          from: accounts[0],
+          value: web3.utils.toWei('3', 'finney'),
+          gas: '1000000'
+        });
+      assert(false);
+    } catch (err) {
+      assert(err);
+    }
   });
 });
