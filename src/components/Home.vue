@@ -40,7 +40,7 @@
                         v-model="supervisor.address" 
                         required>
                         </el-input>
-                    <el-button @click="removeSuperrvisor(index)">Remove</el-button>
+                    <el-button @click="removeSuperrvisor(index)" :disabled="task.supervisors.length <= 1">Remove</el-button>
                 </el-form-item>
                 <el-form-item v-if="active >= 2">
                     <el-button @click="addSupervisor">Add Supervisor</el-button>
@@ -87,7 +87,7 @@
                     return true;
                 }
 
-                if (this.active > 1 && this.task.supervisors.filter((supervisor) => (supervisor.address.length < 1)).length > 0) {
+                if (this.active > 1 && this.task.supervisors.length <= 1 && this.task.supervisors.filter((supervisor) => (supervisor.address.length < 1)).length > 0) {
                     return true;
                 }
 
