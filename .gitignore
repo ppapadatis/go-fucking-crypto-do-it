@@ -128,9 +128,9 @@ node_modules
 # testing
 
 # production
+!build/contracts/*
 build
 build_webpack
-!build/contracts
 
 # misc
 .DS_Store

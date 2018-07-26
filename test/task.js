@@ -3,7 +3,7 @@ const task = artifacts.require('./Task');
 import { APPROVED_NETWORK_ID } from '../src/util/constants';
 import Web3 from 'web3';
 
-contract('Task', async (accounts) => {
+contract('Task', async accounts => {
   it('deploys a factory and a task', async () => {
     await factory.deployed();
     assert.ok(factory.networks[APPROVED_NETWORK_ID].address);
