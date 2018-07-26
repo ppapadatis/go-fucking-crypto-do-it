@@ -130,6 +130,7 @@ node_modules
 # production
 build
 build_webpack
+!build/contracts
 
 # misc
 .DS_Store

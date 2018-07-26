@@ -1,13 +1,19 @@
-const state = {
+export default {
+  currentRoute: null,
+  currentView: null,
   web3: {
-    isInjected: false,
-    web3Instance: null,
-    networkId: null,
+    address: null,
     coinbase: null,
-    balance: null,
     error: null,
+    instance: null,
+    isInjected: false,
+    networkId: null,
   },
-  contractInstance: null,
+  user: {
+    balance: '0.00',
+    coinbase: '',
+    hasCoinbase: false,
+    hasWeb3InjectedBrowser: false,
+    isConnectedToApprovedNetwork: false,
+  },
 };
-
-export default state;
