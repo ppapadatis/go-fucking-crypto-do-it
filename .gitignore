@@ -128,7 +128,6 @@ node_modules
 # testing
 
 # production
-!build/contracts/*
 build
 build_webpack
 
