@@ -70,10 +70,10 @@ contract TaskBase is TaskAccessControl
     Task[] tasks;
 
     /// @dev A mapping from task IDs to the address that owns them. 
-    mapping (uint => address) public taskIndexToOwner;
+    mapping(uint => address) public taskIndexToOwner;
 
     /// @dev A mapping from owner address to count of tasks that address owns.
-    mapping (address => uint) ownershipTaskCount;
+    mapping(address => uint) ownershipTaskCount;
 
     /// @dev Assigns ownership of a specific Task to an address.
     ///
