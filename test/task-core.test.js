@@ -2,7 +2,7 @@ const debug = require('debug')('ck');
 const util = require('./util.js');
 const taskCore = artifacts.require('./TaskCore');
 
-contract('TaskCore', accounts => {
+contract('TaskCore', (accounts) => {
   before(() => util.measureGas(accounts));
   after(() => util.measureGas(accounts));
 
@@ -10,19 +10,18 @@ contract('TaskCore', accounts => {
 
   const yesterday = Date.now() - 24 * 60 * 60;
   const tomorrow = Date.now() + 24 * 60 * 60;
-  const dayAfterTomorrow = tomorrow + 24 * 60 * 60;
   const nullAddress = '0x0000000000000000000000000000000000000000';
   const serviceOwner = accounts[0];
   const user = accounts[1];
-  const supervisor1 = accounts[2];
-  const supervisor2 = accounts[3];
-  const newServiceOwner = accounts[4];
+  const newServiceOwner = accounts[2];
+  const supervisor1 = accounts[3];
+  const supervisor2 = accounts[4];
   const logEvents = [];
   const pastEvents = [];
   let coreC;
 
   after(function() {
-    logEvents.forEach(ev => ev.stopWatching());
+    logEvents.forEach((ev) => ev.stopWatching());
   });
 
   async function deployContract() {
@@ -36,6 +35,13 @@ contract('TaskCore', accounts => {
       debug('>>', res.event, res.args);
     });
     logEvents.push(eventsWatch);
+  }
+
+  async function createTask(from, time, goal = 'goal', value = '2') {
+    await coreC.createTask(goal, time, {
+      from: from,
+      value: web3.toWei(value, 'finney'),
+    });
   }
 
   describe('initial state', () => {
@@ -65,31 +71,29 @@ contract('TaskCore', accounts => {
     before(deployContract);
 
     it('creates a new task', async () => {
-      await coreC.createTask('goal', tomorrow, {
-        from: user,
-        value: web3.toWei('2', 'finney')
-      });
-
+      await createTask(user, tomorrow);
       const owner = await coreC.taskIndexToOwner.call(0);
       assert.equal(owner, user);
     });
 
     it('returns task details by id', async () => {
-      await coreC.createTask('goal', tomorrow, {
-        from: user,
-        value: web3.toWei('2', 'finney')
-      });
-
+      await createTask(user, tomorrow);
       const details = await coreC.getTask.call(0);
       assert.ok(details);
     });
 
     it('denies a task if the user is null', async () => {
       try {
-        await coreC.createTask('goal', tomorrow, {
-          from: nullAddress,
-          value: web3.toWei('2', 'finney')
-        });
+        await createTask(nullAddress, tomorrow);
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies a task if the user does not speficy a goal', async () => {
+      try {
+        await coreC.createTask(user, tomorrow, null);
 
         assert(false);
       } catch (err) {
@@ -99,24 +103,7 @@ contract('TaskCore', accounts => {
 
     it('denies a task if the user payes less than the minimum', async () => {
       try {
-        await coreC.createTask('goal', tomorrow, {
-          from: user,
-          value: web3.toWei('1', 'finney')
-        });
-
-        assert(false);
-      } catch (err) {
-        assert(err);
-      }
-    });
-
-    it('denies a task if the user does not speficy a goal', async () => {
-      try {
-        await coreC.createTask(null, tomorrow, {
-          from: user,
-          value: web3.toWei('2', 'finney')
-        });
-
+        await createTask(user, tomorrow, 'goal', '1');
         assert(false);
       } catch (err) {
         assert(err);
@@ -125,11 +112,7 @@ contract('TaskCore', accounts => {
 
     it('denies a task if the user specifies a date earlier than today', async () => {
       try {
-        await coreC.createTask('goal', yesterday, {
-          from: user,
-          value: web3.toWei('2', 'finney')
-        });
-
+        await createTask(user, yesterday, 'goal', '2');
         assert(false);
       } catch (err) {
         assert(err);
@@ -138,20 +121,13 @@ contract('TaskCore', accounts => {
   });
 
   describe('ownership functionality', () => {
-    async function createTask() {
-      await coreC.createTask('goal', tomorrow, {
-        from: user,
-        value: web3.toWei('2', 'finney')
-      });
-    }
-
     before(deployContract);
-    before(createTask);
 
     it('sets a single supervisor', async () => {
       try {
+        await createTask(user, tomorrow);
         const transaction = await coreC.setSupervisors([supervisor1], 0, {
-          from: user
+          from: user,
         });
 
         assert.ok(transaction);
@@ -162,12 +138,13 @@ contract('TaskCore', accounts => {
 
     it('sets multiple supervisors', async () => {
       try {
+        await createTask(user, tomorrow);
         const transaction = await coreC.setSupervisors(
           [supervisor1, supervisor2],
-          0,
+          1,
           {
-            from: user
-          }
+            from: user,
+          },
         );
 
         assert.ok(transaction);
@@ -178,11 +155,10 @@ contract('TaskCore', accounts => {
 
     it('allows a supervisor to confirm a task', async () => {
       try {
-        await coreC.setSupervisors([supervisor1], 0, {
-          from: user
-        });
-        const transaction = await coreC.confirmTaskCompletion(0, {
-          from: supervisor1
+        await createTask(user, tomorrow);
+        await coreC.setSupervisors([supervisor1], 2, { from: user });
+        const transaction = await coreC.confirmTaskCompletion(2, {
+          from: supervisor1,
         });
 
         assert.ok(transaction);
@@ -193,11 +169,10 @@ contract('TaskCore', accounts => {
 
     it('allows the user to withdraw the stake', async () => {
       try {
-        await coreC.setSupervisors([supervisor1], 0, {
-          from: user
-        });
-        await coreC.confirmTaskCompletion(0, { from: supervisor1 });
-        const transaction = await coreC.withdrawStake(0, { from: user });
+        await createTask(user, tomorrow);
+        await coreC.setSupervisors([supervisor1], 3, { from: user });
+        await coreC.confirmTaskCompletion(3, { from: supervisor1 });
+        const transaction = await coreC.withdrawStake(3, { from: user });
 
         assert.ok(transaction);
       } catch (err) {
@@ -207,11 +182,9 @@ contract('TaskCore', accounts => {
 
     it('allows the service owner to claim the expired task', async () => {
       try {
-        await util.forwardEVMTime(dayAfterTomorrow);
-        const transaction = await coreC.claimStake(0, {
-          from: serviceOwner,
-          gas: 4500000
-        });
+        await createTask(user, tomorrow);
+        await util.forwardEVMTime(Date.now() + 48 * 60 * 60);
+        const transaction = await coreC.claimStake(4, { from: serviceOwner });
 
         assert.ok(transaction);
       } catch (err) {
@@ -219,19 +192,143 @@ contract('TaskCore', accounts => {
       }
     });
 
-    // it('denies the user as a supervisor', async () => {});
-    // it('denies the same supervisor twice', async () => {});
-    // it('denies the null address as supervisor', async () => {});
+    it('denies the user as a supervisor', async () => {
+      try {
+        await createTask(user, tomorrow + 48 * 60 * 60);
+        await coreC.setSupervisors([user], 5, { from: user });
 
-    // it('denies confirmation on expired task', async () => {});
-    // it('denies confirmation on fulfilled task', async () => {});
-    // it('denies a non-supervisor to confirm a task', async () => {});
-    // it('denies double confirmations', async () => {});
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
 
-    // it('denies withdrawal on tasks not owned by the user', async () => {});
-    // it('denies withdrawal on fulfilled tasks', async () => {});
+    it('denies the same supervisor twice', async () => {
+      try {
+        await createTask(user, tomorrow + 48 * 60 * 60);
+        await coreC.setSupervisors([supervisor1, supervisor1], 6, {
+          from: user,
+        });
 
-    // it('denies claim on non-expired tasks', async () => {});
-    // it('denies claim on fulfilled tasks', async () => {});
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies the null address as supervisor', async () => {
+      try {
+        await createTask(user, tomorrow + 48 * 60 * 60);
+        await coreC.setSupervisors([nullAddress], 7, { from: user });
+
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies confirmation on expired task', async () => {
+      try {
+        await createTask(user, tomorrow + 48 * 60 * 60);
+        await coreC.setSupervisors([supervisor1], 8, { from: user });
+        await util.forwardEVMTime(Date.now() + 96 * 60 * 60);
+        await coreC.confirmTaskCompletion(8, { from: supervisor1 });
+
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies confirmation on fulfilled task', async () => {
+      try {
+        await createTask(user, tomorrow + 96 * 60 * 60);
+        await coreC.setSupervisors([supervisor1], 9, { from: user });
+        await coreC.confirmTaskCompletion(9, { from: supervisor1 });
+        await coreC.withdrawStake(9, { from: user });
+        await coreC.confirmTaskCompletion(9, { from: supervisor1 });
+
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies a non-supervisor to confirm a task', async () => {
+      try {
+        await createTask(user, tomorrow + 96 * 60 * 60);
+        await coreC.setSupervisors([supervisor1], 10, { from: user });
+        await coreC.confirmTaskCompletion(10, { from: supervisor2 });
+
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies double confirmations', async () => {
+      try {
+        await createTask(user, tomorrow + 96 * 60 * 60);
+        await coreC.setSupervisors([supervisor1], 11, { from: user });
+        await coreC.confirmTaskCompletion(11, { from: supervisor1 });
+        await coreC.confirmTaskCompletion(11, { from: supervisor1 });
+
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies withdrawal on tasks not owned by the user', async () => {
+      try {
+        await createTask(user, tomorrow + 96 * 60 * 60);
+        await coreC.setSupervisors([supervisor1], 12, { from: user });
+        await coreC.confirmTaskCompletion(12, { from: supervisor1 });
+        await coreC.withdrawStake(12, { from: supervisor1 });
+
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies withdrawal on fulfilled tasks', async () => {
+      try {
+        await createTask(user, tomorrow + 96 * 60 * 60);
+        await coreC.setSupervisors([supervisor1], 13, { from: user });
+        await coreC.confirmTaskCompletion(13, { from: supervisor1 });
+        await coreC.withdrawStake(13, { from: user });
+        await coreC.withdrawStake(13, { from: user });
+
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies claim on non-expired tasks', async () => {
+      try {
+        await createTask(user, tomorrow + 96 * 60 * 60);
+        await coreC.claimStake(14, { from: serviceOwner });
+
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
+
+    it('denies claim on fulfilled tasks', async () => {
+      try {
+        await createTask(user, tomorrow + 96 * 60 * 60);
+        await coreC.setSupervisors([supervisor1], 15, { from: user });
+        await coreC.confirmTaskCompletion(15, { from: supervisor1 });
+        await coreC.withdrawStake(15, { from: user });
+        await coreC.claimStake(15, { from: serviceOwner });
+
+        assert(false);
+      } catch (err) {
+        assert(err);
+      }
+    });
   });
 });
