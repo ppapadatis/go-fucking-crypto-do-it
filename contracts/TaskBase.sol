@@ -1,12 +1,12 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.22;
 
 import "./TaskAccessControl.sol";
 
 /// @title Base contract for CryptoTasks. Holds all common structs, events and base variables.
 /// @author Panagiotis Papadatis (https://github.com/ppapadatis)
 /// @dev See the TaskCore contract documentation to understand how the various contract facets are arranged.
-contract TaskBase is TaskAccessControl {
-
+contract TaskBase is TaskAccessControl
+{
     /*** EVENTS ***/
 
     /// @dev The Creation event is fired whenever a new task comes into existence.
@@ -14,6 +14,13 @@ contract TaskBase is TaskAccessControl {
 
     /// @dev The Transfer event is fired every time a task ownership is assigned.
     event Transfer(address indexed from, address indexed to, uint taskId);
+
+    /// @dev The Supervised event is fired whenever an address is
+    ///  being set as a supervisor.
+    event Supervised(address[] supervisors, uint taskId);
+
+    /// @dev The Approved event is fired when a supervisor approves a task.
+    event Approved(address indexed supervisor, uint taskId);
 
     /// @dev The Fulfilled event is fired when a task is marked fulfilled.
     event Fulfilled(address indexed owner, uint taskId);
@@ -23,8 +30,8 @@ contract TaskBase is TaskAccessControl {
     /// @dev The Confirmation Request struct. Every task in order to be fulfilled,
     ///  the accounts marked as supervisors must confirm it for the user to
     ///  be able to withdraw his/her stake.
-    struct ConfirmationRequest {
-
+    struct ConfirmationRequest
+    {
         // A flag to check whether the request is fulfilled or not.
         bool fulfilled;
 
@@ -36,8 +43,8 @@ contract TaskBase is TaskAccessControl {
     }
 
     /// @dev The main Task struct
-    struct Task {
-
+    struct Task
+    {
         /// @dev The confirmation request struct for the task.
         ConfirmationRequest confirmationRequest;
 
@@ -62,8 +69,8 @@ contract TaskBase is TaskAccessControl {
     /// @dev An array containing the Task struct for all tasks in existence.
     Task[] tasks;
 
-    /// @dev A mapping from task IDs to the address that owns them.
-    mapping (uint => address) public TaskIndexToOwner;
+    /// @dev A mapping from task IDs to the address that owns them. 
+    mapping (uint => address) public taskIndexToOwner;
 
     /// @dev A mapping from owner address to count of tasks that address owns.
     mapping (address => uint) ownershipTaskCount;
@@ -73,9 +80,10 @@ contract TaskBase is TaskAccessControl {
     /// @param _from The address to transfer from.
     /// @param _to The address to transfer to.
     /// @param _taskId The task index to transfer.
-    function _transfer(address _from, address _to, uint _taskId) internal {
+    function _transfer(address _from, address _to, uint _taskId) internal
+    {
         ownershipTaskCount[_to]++;
-        TaskIndexToOwner[_taskId] = _to;
+        taskIndexToOwner[_taskId] = _to;
         if (_from != address(0)) {
             ownershipTaskCount[_from]--;
         }
@@ -91,9 +99,10 @@ contract TaskBase is TaskAccessControl {
     /// @param _deadline The task's deadline.
     /// @param _stake The task's stake value.
     /// @param _owner The inital owner of this task, must be non-zero.
-    ///
     /// @return uint The task's id
-    function _createTask(string _goal, uint _deadline, uint _stake, address _owner) internal returns (uint) {
+    function _createTask(string _goal, uint _deadline, uint _stake, address _owner) internal 
+        returns (uint)
+    {
         ConfirmationRequest memory _request = ConfirmationRequest({
             fulfilled: false,
             confirmationsCount: 0
@@ -111,5 +120,7 @@ contract TaskBase is TaskAccessControl {
 
         emit Creation(_owner, newTaskIndex);
         _transfer(0, _owner, newTaskIndex);
+
+        return newTaskIndex;
     }    
 }

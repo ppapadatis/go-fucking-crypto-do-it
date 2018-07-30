@@ -1,5 +1,5 @@
 const Task = artifacts.require('./TaskCore.sol');
 
-module.exports = (deployer) => {
+module.exports = deployer => {
   deployer.deploy(Task);
 };
