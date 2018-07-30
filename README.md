@@ -26,6 +26,9 @@ truffle test
 
 # compile contracts
 truffle compile
+
+# migrate contracts to rinkeby network
+truffle migrate --network rinkeby
 ```
 
 ## Build Setup
