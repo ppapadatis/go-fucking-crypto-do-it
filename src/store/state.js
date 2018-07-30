@@ -7,13 +7,14 @@ export default {
     error: null,
     instance: null,
     isInjected: false,
-    networkId: null,
+    networkId: null
   },
   user: {
     balance: '0.00',
     coinbase: '',
     hasCoinbase: false,
     hasWeb3InjectedBrowser: false,
-    isConnectedToApprovedNetwork: false,
+    isConnectedToApprovedNetwork: false
   },
-};
+  isDAppReady: false
+}

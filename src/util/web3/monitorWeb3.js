@@ -36,20 +36,38 @@ const monitorWeb3 = function (state) {
     if (web3 && !isLocalWeb3) {
       web3.version.getNetwork((err, newNetworkId) => {
         newNetworkId = !err && newNetworkId ? newNetworkId.toString() : ''
-        if ((!err && newNetworkId && newNetworkId !== '' && newNetworkId !== networkId) || (!newNetworkId && networkId)) {
+        if (
+          (!err &&
+            newNetworkId &&
+            newNetworkId !== '' &&
+            newNetworkId !== networkId) ||
+          (!newNetworkId && networkId)
+        ) {
           store.dispatch(ACTION_TYPES.LOGOUT)
           window.location.reload()
         } else {
           web3.eth.getCoinbase((err, newCoinbase) => {
             newCoinbase = !err && newCoinbase ? newCoinbase.toString() : ''
-            if ((!err && newCoinbase && newCoinbase !== '' && newCoinbase !== coinbase && newNetworkId === APPROVED_NETWORK_ID) || (!newCoinbase && coinbase)) {
+            if (
+              (!err &&
+                newCoinbase &&
+                newCoinbase !== '' &&
+                newCoinbase !== coinbase &&
+                newNetworkId === APPROVED_NETWORK_ID) ||
+              (!newCoinbase && coinbase)
+            ) {
               store.dispatch(ACTION_TYPES.LOGOUT)
               window.location.reload()
-            } else if (!err && newCoinbase && newCoinbase !== '' && newCoinbase !== coinbase) {
+            } else if (
+              !err &&
+              newCoinbase &&
+              newCoinbase !== '' &&
+              newCoinbase !== coinbase
+            ) {
               coinbase = newCoinbase
               store.dispatch(ACTION_TYPES.UPDATE_WEB3_PROPERTIES, {
                 properties: ['coinbase'],
-                values: [ newCoinbase ]
+                values: [newCoinbase]
               })
             }
           })
