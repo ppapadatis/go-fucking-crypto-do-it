@@ -39,7 +39,7 @@ contract TaskBase is TaskAccessControl
         uint confirmationsCount;
 
         // A mapping from supervisor address to a bool flag that marks them as confirmers.
-        mapping(address => bool) confirmers;
+        mapping (address => bool) confirmers;
     }
 
     /// @dev The main Task struct
@@ -61,7 +61,7 @@ contract TaskBase is TaskAccessControl
         uint supervisorsCount;
 
         /// @dev A mapping from supervisor address to a bool flag that marks them as such.
-        mapping(address => bool) supervisors;
+        mapping (address => bool) supervisors;
     }
 
     /** STORAGE ***/
@@ -70,10 +70,10 @@ contract TaskBase is TaskAccessControl
     Task[] tasks;
 
     /// @dev A mapping from task IDs to the address that owns them. 
-    mapping(uint => address) public taskIndexToOwner;
+    mapping (uint => address) public taskIndexToOwner;
 
     /// @dev A mapping from owner address to count of tasks that address owns.
-    mapping(address => uint) ownershipTaskCount;
+    mapping (address => uint) ownershipTaskCount;
 
     /// @dev Assigns ownership of a specific Task to an address.
     ///

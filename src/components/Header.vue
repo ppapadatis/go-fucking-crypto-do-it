@@ -6,15 +6,15 @@
 </template>
 
 <script>
-    export default {
-        data() {
-          return {
-              activeIndex: '1'
-          }
-        }
+export default {
+  name: 'Header',
+  data() {
+    return {
+      activeIndex: '1'
     }
+  }
+}
 </script>
 
 <style>
-    
 </style>

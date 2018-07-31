@@ -1,5 +1,5 @@
 <template>
-    <el-container>    
+    <el-container>
         <el-header>
             <app-header></app-header>
         </el-header>
@@ -11,18 +11,20 @@
 </template>
 
 <script>
-    import Header from './components/Header.vue';
+import Header from './components/Header.vue'
 
-    export default {
-        components: {
-            appHeader: Header
-        }
-    }
+export default {
+  name: 'App',
+  components: {
+    appHeader: Header
+  }
+}
 </script>
 
 <style>
-    #app {
-        font-family: brown, -apple-system, BlinkMacSystemFont, avenir, "lucida grande", "gill sans", "helvetica neue", helvetica, sans-serif;
-    }
+@import './styles/app.scss';
+* {
+  font-family: 'brown', -apple-system, BlinkMacSystemFont, avenir,
+    'lucida grande', 'gill sans', 'helvetica neue', helvetica, sans-serif;
+}
 </style>
-

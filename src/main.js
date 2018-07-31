@@ -1,29 +1,18 @@
 import Vue from 'vue'
-import VueRouter from 'vue-router'
-import VueResource from 'vue-resource'
+import App from './App.vue'
+import router from './router'
+
 import ElementUI from 'element-ui'
 import locale from 'element-ui/lib/locale/lang/en'
+import 'element-ui/lib/theme-chalk/index.css'
 
-import App from './App.vue'
-import { routes } from './routes'
-import store from './store/store'
-
-Vue.use(VueRouter)
-Vue.use(VueResource)
 Vue.use(ElementUI, { locale })
+Vue.config.productionTip = false
 
-Vue.filter('currency', (value) => {
-  return '$' + value.toLocaleString()
-})
-
-const router = new VueRouter({
-  mode: 'history',
-  routes
-})
+/* eslint-disable no-new */
 
 new Vue({
   el: '#app',
   router,
-  store,
-  render: (h) => h(App)
+  render: h => h(App)
 })

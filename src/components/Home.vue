@@ -7,7 +7,7 @@
                         <el-step title="Step 1" description="Set your goal"></el-step>
                         <el-step title="Step 2" description="Set a deadline"></el-step>
                         <el-step title="Step 3" description="Set supervisors"></el-step>
-                    </el-steps>              
+                    </el-steps>
                 </el-form-item>
                 <el-form-item label="Goal Description" v-if="active === 0">
                     <el-input
@@ -56,87 +56,95 @@
 </template>
 
 <script>
-    export default {
-        data() {
-            return {
-                active: 0,
-                loading: false,
-                loadingText: 'Please wait until the process is finished successully.\nDo not close or reload this tab!',
-                datePickerOptions: {
-                    disabledDate (date) {
-                        return date <= new Date()
-                    }
-                },
-                task: {
-                    goal: '',
-                    deadline: '',
-                    supervisors: [{ address: '' }],
-                }
-            };
-        },
-        computed: {
-            charactersLeft() {
-                return 140 - this.task.goal.length;
-            },
-            disabledButton() {
-                if (this.active === 0 && this.task.goal.length < 1) {
-                    return true;
-                }
-
-                if (this.active === 1 && this.task.deadline.length < 1) {
-                    return true;
-                }
-
-                if (this.active > 1 && this.task.supervisors.length <= 1 && this.task.supervisors.filter((supervisor) => (supervisor.address.length < 1)).length > 0) {
-                    return true;
-                }
-
-                return false;
-            }
-        },
-        methods: {
-            addSupervisor() {
-                this.task.supervisors.push({ address: '' });
-            },
-            removeSuperrvisor(index) {
-                this.task.supervisors.splice(index, 1);
-            },
-            prev() {
-                if (this.active > 2) {
-                    this.active = 1;
-                } else if (this.active > 0) {
-                    this.active--;
-                }
-
-                document.getElementsByName('submit')[0].innerHTML = "Next step";
-            },
-            next() {
-                event.preventDefault();
-
-                if (this.active >= 3) {
-                    this.loading = true;
-                }
-
-                if (this.active < 2) {
-                    this.active++;
-                }
-                
-                if (this.active > 1) {
-                    this.active = 3;
-                    event.target.innerHTML = "Create Goal";
-                }
-            },
-            reset() {
-                this.active = 0;
-                this.task = {goal: '', deadline: '', supervisors: [{ address: '' }]};
-                document.getElementsByName('submit')[0].innerHTML = "Next step";
-            }
+export default {
+  name: 'Home',
+  data() {
+    return {
+      active: 0,
+      loading: false,
+      loadingText:
+        'Please wait until the process is finished successully.\nDo not close or reload this tab!',
+      datePickerOptions: {
+        disabledDate(date) {
+          return date <= new Date()
         }
+      },
+      task: {
+        goal: '',
+        deadline: '',
+        supervisors: [{ address: '' }]
+      }
     }
+  },
+  computed: {
+    charactersLeft() {
+      return 140 - this.task.goal.length
+    },
+    disabledButton() {
+      if (this.active === 0 && this.task.goal.length < 1) {
+        return true
+      }
+
+      if (this.active === 1 && this.task.deadline.length < 1) {
+        return true
+      }
+
+      if (
+        this.active > 1 &&
+        this.task.supervisors.length <= 1 &&
+        this.task.supervisors.filter(
+          supervisor => supervisor.address.length < 1
+        ).length > 0
+      ) {
+        return true
+      }
+
+      return false
+    }
+  },
+  methods: {
+    addSupervisor() {
+      this.task.supervisors.push({ address: '' })
+    },
+    removeSuperrvisor(index) {
+      this.task.supervisors.splice(index, 1)
+    },
+    prev() {
+      if (this.active > 2) {
+        this.active = 1
+      } else if (this.active > 0) {
+        this.active--
+      }
+
+      document.getElementsByName('submit')[0].innerHTML = 'Next step'
+    },
+    next() {
+      event.preventDefault()
+
+      if (this.active >= 3) {
+        this.loading = true
+      }
+
+      if (this.active < 2) {
+        this.active++
+      }
+
+      if (this.active > 1) {
+        this.active = 3
+        event.target.innerHTML = 'Create Goal'
+      }
+    },
+    reset() {
+      this.active = 0
+      this.task = { goal: '', deadline: '', supervisors: [{ address: '' }] }
+      document.getElementsByName('submit')[0].innerHTML = 'Next step'
+    }
+  }
+}
 </script>
 
 <style>
-    .el-loading-mask {
-        white-space: pre-line;
-    }
+.el-loading-mask {
+  white-space: pre-line;
+}
 </style>
