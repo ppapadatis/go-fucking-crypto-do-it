@@ -1,9 +1,8 @@
 import BcExplorer from './BcExplorer'
 import TaskContract from '../../build/contracts/TaskCore.json'
-require('dotenv').config({ path: '../../../.env' })
 
 let mixinViews = {
-  data () {
+  data() {
     return {
       bcConnected: false, // true when the connection with the blockchain is established, plus the contract ABI + address is correctli initialized
       bcConnectionError: false,
@@ -11,7 +10,7 @@ let mixinViews = {
     }
   },
 
-  created () {
+  created() {
     // when this file is imported to other component it checks if the BcExplorer
     // is instatiated.
     if (window.bc === undefined) {
@@ -23,7 +22,7 @@ let mixinViews = {
           TaskContract,
           `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`
         )
-        .then((error) => {
+        .then(error => {
           // handling the connection error
           if (error) {
             this.bcConnectionError = true
@@ -54,7 +53,7 @@ let mixinViews = {
      * Check if the connection with the blockchain is established and if the smart
      * contract ABI + address are correctly initialized.
      */
-    blockchainIsConnected () {
+    blockchainIsConnected() {
       this.bcConnected = window.bc !== undefined && window.bc.isConnected()
 
       return this.bcConnected
@@ -63,14 +62,14 @@ let mixinViews = {
     /**
      * Transform the parameter from bytes to string.
      */
-    toAscii (bytesStr) {
+    toAscii(bytesStr) {
       return window.bc.toAscii(bytesStr)
     },
 
     /**
      * Transform a timestamp number to date.
      */
-    toDate (timestamp) {
+    toDate(timestamp) {
       return new Date(timestamp * 1000).toISOString()
     }
   }

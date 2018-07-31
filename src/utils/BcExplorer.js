@@ -25,7 +25,7 @@
 import Web3 from 'web3'
 
 class BcExplorer {
-  constructor () {
+  constructor() {
     this.web3inst = null // store the web3 instace
     this.contractInst = [] // store the smart contract instance
 
@@ -45,8 +45,9 @@ class BcExplorer {
    * @param {string} addressUrl Provider address URL like http://127.0.0.1:7545
    * @return {Promise}
    */
-  init (addressUrl) {
+  init(addressUrl) {
     return new Promise((resolve, reject) => {
+      let web3
       // checking if the provider is already set by mist or metamask
       if (typeof web3 !== 'undefined') {
         web3 = new Web3(web3.currentProvider)
@@ -62,7 +63,7 @@ class BcExplorer {
           web3 = new Web3(provider)
         } catch (e) {
           // this is in case metamask/mist is off and avoid the exception web3 is not instatiated
-          var web3 = new Web3(provider)
+          web3 = new Web3(provider)
         }
       }
 
@@ -84,20 +85,20 @@ class BcExplorer {
    * @param {string} contractName contract name (required if you are initializing more then one contract)
    * @return {Promise}
    */
-  initContractJson (compiledJson, contractName, networkId) {
+  initContractJson(compiledJson, contractName, networkId) {
     networkId = networkId || null
 
     // if the networkId is not provided it will find out
     if (!networkId) {
       return this.getNetworkId()
-        .then((networkId) => {
+        .then(networkId => {
           return this.performInitContractJson(
             networkId,
             compiledJson,
             contractName
           )
         })
-        .catch((error) => {
+        .catch(error => {
           return error
         })
     }
@@ -116,7 +117,7 @@ class BcExplorer {
    * @param {string} contractName contract name (required if you are initializing more then one contract)
    * @return {Promise}
    */
-  initWithContractJson (compiledJson, addressUrl, contractName, networkId) {
+  initWithContractJson(compiledJson, addressUrl, contractName, networkId) {
     return this.init(addressUrl).then(() => {
       return this.initContractJson(compiledJson, contractName, networkId)
     })
@@ -128,7 +129,7 @@ class BcExplorer {
    * @param {string} attr
    * @return mixed
    */
-  getInfo (attr) {
+  getInfo(attr) {
     if (attr) {
       return this.info[attr]
     }
@@ -143,7 +144,7 @@ class BcExplorer {
    *
    * @return {object}
    */
-  web3 () {
+  web3() {
     if (typeof window.web3 !== 'undefined') return window.web3
 
     if (this.web3inst) return this.web3inst
@@ -157,7 +158,7 @@ class BcExplorer {
    *
    * @return {bool}
    */
-  isConnected () {
+  isConnected() {
     return this.info.isConnected && this.countContracts()
   }
 
@@ -166,7 +167,7 @@ class BcExplorer {
    *
    * @return {object}
    */
-  contract (contractName) {
+  contract(contractName) {
     if (this.countContracts() === 0) {
       console.error('BcExplorer error: contract is not initialized.')
 
@@ -191,8 +192,8 @@ class BcExplorer {
    * @param {object} compiledJson Truffle compiled JSON after the migration of the smart contract (file you find in /build/contract after smart contract migration)
    * @return boolean
    */
-  performInitContractJson (networkId, compiledJson, contractName) {
-    if (typeof compiledJson['abi'] === undefined) {
+  performInitContractJson(networkId, compiledJson, contractName) {
+    if (typeof compiledJson['abi'] === 'undefined') {
       console.error(
         'BcExplorer error: missing ABI in the compiled Truffle JSON.'
       )
@@ -202,7 +203,7 @@ class BcExplorer {
     var abiArray = compiledJson['abi']
 
     if (
-      typeof compiledJson['networks'] === undefined ||
+      typeof compiledJson['networks'] === 'undefined' ||
       compiledJson['networks'][networkId] === undefined
     ) {
       console.error(
@@ -225,7 +226,7 @@ class BcExplorer {
    * @param {string} contractName contract name (required if you are initializing more then one contract)
    * @return void
    */
-  initContract (abiArray, contractAddr, contractName) {
+  initContract(abiArray, contractAddr, contractName) {
     contractName = this.contractDefaultName(contractName)
 
     this.contractInst[contractName] = this.web3()
@@ -238,7 +239,7 @@ class BcExplorer {
    *
    * @return {Promise}
    */
-  getNetworkId () {
+  getNetworkId() {
     return new Promise((resolve, reject) => {
       this.web3().version.getNetwork((error, networkId) => {
         if (error) {
@@ -258,7 +259,7 @@ class BcExplorer {
    *
    * @return {Promise}
    */
-  getCoinbase () {
+  getCoinbase() {
     return new Promise((resolve, reject) => {
       this.web3().eth.getCoinbase((error, coinbase) => {
         if (error) {
@@ -278,7 +279,7 @@ class BcExplorer {
    * @param {string} accountAddr
    * @return {Promise}
    */
-  getBalance (accountAddr) {
+  getBalance(accountAddr) {
     return new Promise((resolve, reject) => {
       this.web3().eth.getBalance(accountAddr, (error, balance) => {
         if (error) {
@@ -307,15 +308,15 @@ class BcExplorer {
    *
    * @return {Promise}
    */
-  loadInfo () {
+  loadInfo() {
     return this.getCoinbase()
-      .then((coinbase) => {
+      .then(coinbase => {
         return this.getBalance(coinbase)
       })
-      .then((balance) => {
+      .then(balance => {
         return this.getNetworkId()
       })
-      .then((networkId) => {
+      .then(networkId => {
         return new Promise((resolve, reject) => {
           resolve(this.info)
         })
@@ -332,7 +333,7 @@ class BcExplorer {
    * @param {mixed} bal
    * @return {numeric}
    */
-  weiToEther (bal) {
+  weiToEther(bal) {
     if (typeof bal === 'object') {
       bal = bal.toNumber()
     }
@@ -346,7 +347,7 @@ class BcExplorer {
    * @param {string} bytes
    * @return {string}
    */
-  toAscii (bytes) {
+  toAscii(bytes) {
     return this.web3()
       .toAscii(bytes)
       .replace(/\u0000/g, '')
@@ -358,7 +359,7 @@ class BcExplorer {
    * @param {numeric} bytes
    * @return {string}
    */
-  toDate (timestamp) {
+  toDate(timestamp) {
     return new Date(timestamp * 1000).toISOString()
   }
 
@@ -368,7 +369,7 @@ class BcExplorer {
    *
    * @return {Number}
    */
-  countContracts () {
+  countContracts() {
     var total = 0
 
     for (var key in this.contractInst) {
@@ -384,7 +385,7 @@ class BcExplorer {
    * @return {string} name
    * @return {string}
    */
-  contractDefaultName (name) {
+  contractDefaultName(name) {
     var contractName = name || 'default'
 
     if (!contractName || !contractName.length) contractName = 'default'

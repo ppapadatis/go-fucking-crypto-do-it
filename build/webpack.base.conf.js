@@ -1,4 +1,5 @@
 'use strict'
+const Dotenv = require('dotenv-webpack')
 const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
@@ -93,5 +94,10 @@ module.exports = {
     net: 'empty',
     tls: 'empty',
     child_process: 'empty'
-  }
+  },
+  plugins: [
+    new Dotenv({
+      path: path.join(process.cwd(), `.env.${process.env.NODE_ENV}`)
+    })
+  ]
 }

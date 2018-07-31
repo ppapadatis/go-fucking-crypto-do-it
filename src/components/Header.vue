@@ -7,18 +7,18 @@
 </template>
 
 <script>
-import mixin from '../utils/mixinViews';
+import mixin from '../utils/mixinViews'
 
 export default {
   name: 'Header',
   mixins: [mixin],
-  data () {
+  data() {
     return {
       activeIndex: '1',
       tmoConn: null, // contain the intervalID given by setInterval
       tmoReg: null, // contain the intervalID given by setInterval
       connectedClass: 'text-danger', // bootstrap class for the connection status (red when not connected, green when connected)
-      userIsRegistered: false, // true when the user that is visiting the page is registered
+      userIsRegistered: false // true when the user that is visiting the page is registered
     }
   },
   methods: {
@@ -27,23 +27,22 @@ export default {
      * from the smart contract until the connection with the smart contract is established.
      */
     checkUserIsRegistered() {
-        this.tmoConn = setInterval(() => {
-            // checking first if the connection with the blockchain is established
-            if (this.blockchainIsConnected()) {
-                // stopping the setInterval
-                clearInterval(this.tmoConn)
-                // showing the connected message on the top bar and setting the class too
-                this.connectedClass = 'text-success'
-                window.bc.contract().getContractAddress.call((error, res) => {
-                    if (error) {
-                        console.error(error);
-                    }
-                    else {
-                        this.userIsRegistered = true
-                    }
-                })
+      this.tmoConn = setInterval(() => {
+        // checking first if the connection with the blockchain is established
+        if (this.blockchainIsConnected()) {
+          // stopping the setInterval
+          clearInterval(this.tmoConn)
+          // showing the connected message on the top bar and setting the class too
+          this.connectedClass = 'text-success'
+          window.bc.contract().getContractAddress.call((error, res) => {
+            if (error) {
+              console.error(error)
+            } else {
+              this.userIsRegistered = true
             }
-        }, 500)
+          })
+        }
+      }, 500)
     },
     /**
      * Check if the user is registered calling the function of the smart contract isRegistered.
@@ -59,26 +58,25 @@ export default {
      * configuration of the blockchain you are using).
      */
     checkUntilUserIsRegistered() {
-        this.tmoReg = setInterval(() => {
-            if (this.blockchainIsConnected()) {
-                window.bc.contract().getContractAddress.call((error, res) => {
-                    if (error) {
-                        console.error(error)
-                    }
-                    else if (res) {
-                        // stopping the setInterval
-                        clearInterval(this.tmoReg)
-                        this.userIsRegistered = true
-                    }
-                })
+      this.tmoReg = setInterval(() => {
+        if (this.blockchainIsConnected()) {
+          window.bc.contract().getContractAddress.call((error, res) => {
+            if (error) {
+              console.error(error)
+            } else if (res) {
+              // stopping the setInterval
+              clearInterval(this.tmoReg)
+              this.userIsRegistered = true
             }
-        }, 1000)
+          })
+        }
+      }, 1000)
     }
   },
   created() {
     // when the event userregistered is fired (from the view Register.vue)
     // it runs the function checkUntilUserIsRegistered
-    Event.$on('userregistered', this.checkUntilUserIsRegistered);
+    Event.$on('userregistered', this.checkUntilUserIsRegistered)
     this.checkUserIsRegistered()
   }
 }

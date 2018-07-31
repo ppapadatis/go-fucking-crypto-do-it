@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development webpack-dev-server --watch-poll --progress --config build/webpack.dev.conf.js",
+    "dev": "cross-env NODE_ENV=development HOST=192.168.10.10 webpack-dev-server --watch-poll --progress --config build/webpack.dev.conf.js",
     "build": "node build/build.js",
     "lint": "eslint --ext .js,.vue src"
   },
@@ -56,6 +56,7 @@
     "css-loader": "^0.28.0",
     "debug": "^3.1.0",
     "dotenv": "^6.0.0",
+    "dotenv-webpack": "^1.5.7",
     "eslint": "^4.15.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-friendly-formatter": "^3.0.0",
