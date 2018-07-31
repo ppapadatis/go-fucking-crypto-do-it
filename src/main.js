@@ -10,9 +10,10 @@ Vue.use(ElementUI, { locale })
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
+window.Event = new Vue()
 
 new Vue({
   el: '#app',
   router,
-  render: h => h(App)
+  render: (h) => h(App)
 })

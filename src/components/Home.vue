@@ -1,13 +1,9 @@
 <template>
     <el-row>
-        <el-col :span="24">
+        <el-col :span="16" :offset="4">
             <el-form ref="form" :model="task" :loading="loading" :element-loading-text="loadingText">
                 <el-form-item>
-                    <el-steps :active="active" finish-status="success">
-                        <el-step title="Step 1" description="Set your goal"></el-step>
-                        <el-step title="Step 2" description="Set a deadline"></el-step>
-                        <el-step title="Step 3" description="Set supervisors"></el-step>
-                    </el-steps>
+                  <app-steps :active="active"></app-steps>
                 </el-form-item>
                 <el-form-item label="Goal Description" v-if="active === 0">
                     <el-input
@@ -30,14 +26,15 @@
                         v-model="task.deadline"
                         type="date"
                         name="deadline"
-                        placeholder="Pick a day">
+                        placeholder="Pick a day"
+                        :editable="false">
                     </el-date-picker>
                 </el-form-item>
                 <el-form-item label="Supervisors" v-if="active >= 2" v-for="(supervisor, index) in task.supervisors" :key="index">
                     <el-input
-                        placeholder="Enter a supervisor address" 
-                        name="supervisors[]" 
-                        v-model="supervisor.address" 
+                        placeholder="Enter a supervisor address"
+                        name="supervisors[]"
+                        v-model="supervisor.address"
                         required>
                         </el-input>
                     <el-button @click="removeSuperrvisor(index)" :disabled="task.supervisors.length <= 1">Remove</el-button>
@@ -46,9 +43,11 @@
                     <el-button @click="addSupervisor">Add Supervisor</el-button>
                 </el-form-item>
                 <el-form-item>
-                    <el-button @click="prev" :disabled="active < 1">Previous step</el-button>
-                    <el-button type="primary" @click="next" name="submit" :disabled="disabledButton" :loading="loading">Next step</el-button>
-                    <el-button @click="reset">Reset</el-button>
+                    <el-button native-type="button" type="primary" @click="prev" :disabled="active < 1" plain round>Previous step</el-button>
+                    <el-button native-type="submit" type="primary" @click="next" name="submit" :disabled="disabledButton" :loading="loading" round>
+                      Next step
+                    </el-button>
+                    <el-button native-type="button" type="warning" @click="reset" :disabled="task.goal.length < 1" plain round>Reset</el-button>
                 </el-form-item>
             </el-form>
         </el-col>
@@ -56,16 +55,18 @@
 </template>
 
 <script>
+import Steps from './partials/Steps.vue'
+
 export default {
   name: 'Home',
-  data() {
+  data () {
     return {
       active: 0,
       loading: false,
       loadingText:
         'Please wait until the process is finished successully.\nDo not close or reload this tab!',
       datePickerOptions: {
-        disabledDate(date) {
+        disabledDate (date) {
           return date <= new Date()
         }
       },
@@ -77,10 +78,10 @@ export default {
     }
   },
   computed: {
-    charactersLeft() {
+    charactersLeft () {
       return 140 - this.task.goal.length
     },
-    disabledButton() {
+    disabledButton () {
       if (this.active === 0 && this.task.goal.length < 1) {
         return true
       }
@@ -89,13 +90,7 @@ export default {
         return true
       }
 
-      if (
-        this.active > 1 &&
-        this.task.supervisors.length <= 1 &&
-        this.task.supervisors.filter(
-          supervisor => supervisor.address.length < 1
-        ).length > 0
-      ) {
+      if (this.active > 1 && this.task.supervisors.filter(supervisor => supervisor.address.length < 1).length > 0) {
         return true
       }
 
@@ -103,13 +98,13 @@ export default {
     }
   },
   methods: {
-    addSupervisor() {
+    addSupervisor () {
       this.task.supervisors.push({ address: '' })
     },
-    removeSuperrvisor(index) {
+    removeSuperrvisor (index) {
       this.task.supervisors.splice(index, 1)
     },
-    prev() {
+    prev () {
       if (this.active > 2) {
         this.active = 1
       } else if (this.active > 0) {
@@ -118,7 +113,7 @@ export default {
 
       document.getElementsByName('submit')[0].innerHTML = 'Next step'
     },
-    next() {
+    next () {
       event.preventDefault()
 
       if (this.active >= 3) {
@@ -134,11 +129,14 @@ export default {
         event.target.innerHTML = 'Create Goal'
       }
     },
-    reset() {
+    reset () {
       this.active = 0
       this.task = { goal: '', deadline: '', supervisors: [{ address: '' }] }
       document.getElementsByName('submit')[0].innerHTML = 'Next step'
     }
+  },
+  components: {
+    appSteps: Steps
   }
 }
 </script>

@@ -65,4 +65,12 @@ contract TaskCore is TaskOwnership
         fulfilled = task.confirmationRequest.fulfilled;
         expired = task.deadline < now;
     }
+
+    /// @dev Returns the address of the contract.
+    ///
+    /// @return address The address of the contract.
+    function getContractAddress() public view returns (address)
+    {
+        return address(this);
+    }
 }

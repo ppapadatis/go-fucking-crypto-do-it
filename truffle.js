@@ -9,7 +9,7 @@ const address = '0x' + wallet.getAddress().toString('hex')
 module.exports = {
   networks: {
     rinkeby: {
-      network_id: 4,
+      network_id: '4',
       provider: () => {
         return new HDWalletProvider(
           privateKey,

@@ -7,8 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development webpack-dev-server --host 0.0.0.0 --public 192.168.10.10:8080 --open --inline --hot --watch-poll --progress --config build/webpack.dev.conf.js",
-    "build": "cross-env NODE_ENV=production webpack --progress --hide-modules",
+    "dev": "cross-env NODE_ENV=development webpack-dev-server --watch-poll --progress --config build/webpack.dev.conf.js",
+    "build": "node build/build.js",
     "lint": "eslint --ext .js,.vue src"
   },
   "repository": {
@@ -103,7 +103,7 @@
     "vue": "^2.0.1",
     "vue-router": "^2.0.1",
     "vuex": "^2.0.0",
-    "web3": "1.0.0-beta.26",
+    "web3": "0.19.0",
     "web3-provider-engine": "^13.3.2"
   }
 }
