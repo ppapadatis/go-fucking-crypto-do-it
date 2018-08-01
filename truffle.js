@@ -1,4 +1,4 @@
-require('dotenv').config({ path: './.env.development' })
+require('dotenv').config()
 const HDWalletProvider = require('truffle-hdwallet-provider-privkey')
 const ethereumwallet = require('ethereumjs-wallet')
 

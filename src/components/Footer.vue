@@ -3,8 +3,11 @@
 </template>
 
 <script>
+import mixin from '../utils/mixinViews'
+
 export default {
-  name: 'Footer'
+  name: 'Footer',
+  mixins: [mixin]
 }
 </script>
 

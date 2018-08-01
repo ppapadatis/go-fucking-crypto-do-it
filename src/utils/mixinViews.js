@@ -4,7 +4,7 @@ import TaskContract from '../../build/contracts/TaskCore.json'
 let mixinViews = {
   data() {
     return {
-      bcConnected: false, // true when the connection with the blockchain is established, plus the contract ABI + address is correctli initialized
+      bcConnected: false, // true when the connection with the blockchain is established, plus the contract ABI + address is correctly initialized
       bcConnectionError: false,
       bcSmartContractAddressError: false
     }
@@ -27,22 +27,27 @@ let mixinViews = {
           if (error) {
             this.bcConnectionError = true
             this.bcConnected = false
-            console.log(error)
+            this.$message.error(error)
           } else {
             // calling a smart contract function in order to check the contract address
             // is correct. NOTE: here you might be connected successfully.
             // TODO: the check of the smart contract address validity it should be BcExplorer duty
-            window.bc.contract().getContractAddress.call((errorReg, res) => {
-              if (errorReg) {
-                this.bcConnectionError = true
-                this.bcSmartContractAddressError = true
-                console.log(errorReg)
-              } else {
-                this.bcConnectionError = false
-              }
+            try {
+              window.bc.contract().getContractAddress.call((errorReg, res) => {
+                if (errorReg) {
+                  this.bcConnectionError = true
+                  this.bcSmartContractAddressError = true
+                  this.$message.error(errorReg)
+                } else {
+                  this.bcConnectionError = false
+                }
+              })
+            } catch (err) {
+              this.bcConnectionError = false
+              this.$message.error(err.message)
+            }
 
-              this.bcConnected = this.blockchainIsConnected()
-            })
+            this.bcConnected = this.blockchainIsConnected()
           }
         })
     }

@@ -1,8 +1,8 @@
 <template>
-    <el-menu :default-active="activeIndex" mode="horizontal">
-        <el-menu-item index="1">Home</el-menu-item>
-        <el-menu-item index="2">My Tasks</el-menu-item>
-        <el-menu-item index="3">{{ bcConnected ? 'Connected' : 'Not Connected' }}</el-menu-item>
+    <el-menu :default-active="$route.path" mode="horizontal" router>
+        <template v-for="rule in $router.options.routes">
+          <el-menu-item :index="rule.path" :key="rule.name">{{ rule.name }}</el-menu-item>
+        </template>
     </el-menu>
 </template>
 
@@ -14,59 +14,55 @@ export default {
   mixins: [mixin],
   data() {
     return {
-      activeIndex: '1',
       tmoConn: null, // contain the intervalID given by setInterval
       tmoReg: null, // contain the intervalID given by setInterval
-      connectedClass: 'text-danger', // bootstrap class for the connection status (red when not connected, green when connected)
-      userIsRegistered: false // true when the user that is visiting the page is registered
+      userIsConnected: false // true when the user that is visiting the page is Connected
     }
   },
   methods: {
     /**
-     * It checks if the visiting user is regitered calling every 500ms the function isRegistered
+     * It checks if the visiting user is regitered calling every 500ms the function isConnected
      * from the smart contract until the connection with the smart contract is established.
      */
-    checkUserIsRegistered() {
+    checkUserIsConnected() {
       this.tmoConn = setInterval(() => {
         // checking first if the connection with the blockchain is established
         if (this.blockchainIsConnected()) {
           // stopping the setInterval
           clearInterval(this.tmoConn)
-          // showing the connected message on the top bar and setting the class too
-          this.connectedClass = 'text-success'
           window.bc.contract().getContractAddress.call((error, res) => {
             if (error) {
-              console.error(error)
+              this.$message.error(error)
             } else {
-              this.userIsRegistered = true
+              this.userIsConnected = true
             }
           })
         }
       }, 500)
     },
     /**
-     * Check if the user is registered calling the function of the smart contract isRegistered.
+     * Check if the user is Connected calling the function of the smart contract isConnected.
      * This function is used when the user is signing up.
      * The difference with the previous function is:
-     *      - the function checkUserIsRegistered tries to check if the user is registered
+     *      - the function checkUserIsConnected tries to check if the user is Connected
      *        until the connection with the blockchain is established.
-     *      - the function checkUntilUserIsRegistered tries to check if the user is registered
-     *        until the user is registered.
+     *      - the function checkUntilUserIsConnected tries to check if the user is Connected
+     *        until the user is Connected.
      *
-     * NOTE: in order to check if the user has been registered successfully the function has to check
+     * NOTE: in order to check if the user has been Connected successfully the function has to check
      * several time because the block can take several minutes in order to be mined (depending on the
      * configuration of the blockchain you are using).
      */
-    checkUntilUserIsRegistered() {
+    checkUntilUserIsConnected() {
       this.tmoReg = setInterval(() => {
         if (this.blockchainIsConnected()) {
           window.bc.contract().getContractAddress.call((error, res) => {
             if (error) {
-              console.error(error)
+              this.$message.error(error)
             } else if (res) {
               // stopping the setInterval
               clearInterval(this.tmoReg)
-              this.userIsRegistered = true
+              this.userIsConnected = true
             }
           })
         }
@@ -74,10 +70,10 @@ export default {
     }
   },
   created() {
-    // when the event userregistered is fired (from the view Register.vue)
-    // it runs the function checkUntilUserIsRegistered
-    Event.$on('userregistered', this.checkUntilUserIsRegistered)
-    this.checkUserIsRegistered()
+    // when the event userConnected is fired (from the view Register.vue)
+    // it runs the function checkUntilUserIsConnected
+    Event.$on('userConnected', this.checkUntilUserIsConnected)
+    this.checkUserIsConnected()
   }
 }
 </script>

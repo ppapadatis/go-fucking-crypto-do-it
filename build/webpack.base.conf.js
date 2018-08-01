@@ -97,7 +97,7 @@ module.exports = {
   },
   plugins: [
     new Dotenv({
-      path: path.join(process.cwd(), `.env.${process.env.NODE_ENV}`)
+      path: path.join(process.cwd(), '.env')
     })
   ]
 }
