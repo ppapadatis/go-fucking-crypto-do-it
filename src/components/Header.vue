@@ -35,6 +35,7 @@ export default {
               this.$message.error(error)
             } else {
               this.userIsConnected = true
+              Event.$emit('userConnected')
             }
           })
         }
@@ -70,8 +71,6 @@ export default {
     }
   },
   created() {
-    // when the event userConnected is fired (from the view Register.vue)
-    // it runs the function checkUntilUserIsConnected
     Event.$on('userConnected', this.checkUntilUserIsConnected)
     this.checkUserIsConnected()
   }

@@ -160,19 +160,10 @@ export default {
     }
   },
 
-  mounted() {
-    Event.$on('MinimumStakeChanged', (oldStake, newStake) => {
-      this.minimumStake = newStake.toNumber()
-      this.$message(
-        `The stake value has been changed from ${oldStake.toNumber()} to ${newStake.toNumber()}`
-      )
-    })
-
-    window.bc.contract().minimumStake.call((error, res) => {
-      this.minimumStake = error
-        ? window.web3.toWei('2', 'finney')
-        : res.toNumber()
-      this.task.stake = this.minimumStake
+  created() {
+    Event.$on('userConnected', () => {
+      this.subscribeToEvents()
+      this.updateMinimumStake()
     })
   },
 
@@ -244,7 +235,6 @@ export default {
                   return false
                 } else {
                   Event.$emit('taskCreated', txHash)
-                  console.log('txHash', txHash)
                   this.reset('task')
                 }
               }
@@ -260,6 +250,26 @@ export default {
           return false
         }
       })
+    },
+    updateMinimumStake() {
+      window.bc.contract().minimumStake.call((error, res) => {
+        this.minimumStake = error
+          ? window.web3.toWei('2', 'finney')
+          : res.toNumber()
+        this.task.stake = this.minimumStake
+      })
+    },
+    subscribeToEvents() {
+      window.bc
+        .contract()
+        .Created({}, { fromBlock: 0, toBlock: 'latest' })
+        .watch((err, response) => {
+          if (err) {
+            console.error(err)
+          } else {
+            console.log('created event', response)
+          }
+        })
     }
   },
 
