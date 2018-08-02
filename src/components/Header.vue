@@ -30,7 +30,7 @@ export default {
         if (this.blockchainIsConnected()) {
           // stopping the setInterval
           clearInterval(this.tmoConn)
-          window.bc.contract().getContractAddress.call((error, res) => {
+          window.bc.contract().serviceOwner.call((error, res) => {
             if (error) {
               this.$message.error(error)
             } else {
@@ -56,7 +56,7 @@ export default {
     checkUntilUserIsConnected() {
       this.tmoReg = setInterval(() => {
         if (this.blockchainIsConnected()) {
-          window.bc.contract().getContractAddress.call((error, res) => {
+          window.bc.contract().serviceOwner.call((error, res) => {
             if (error) {
               this.$message.error(error)
             } else if (res) {

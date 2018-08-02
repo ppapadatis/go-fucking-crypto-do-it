@@ -1,7 +1,7 @@
 <template>
     <el-row>
         <el-col :span="16" :offset="4">
-            <el-form ref="task" :model="task" v-loading="loading" :element-loading-text="loadingText" :rules="rules">
+            <el-form ref="task" :model="task" v-loading="loading" :element-loading-text="loadingText" :rules="rules" @validate="onValidate">
                 <el-form-item>
                   <app-steps :active="active"></app-steps>
                 </el-form-item>
@@ -27,24 +27,11 @@
                         :editable="false">
                     </el-date-picker>
                 </el-form-item>
-                <el-form-item
-                  v-show="active === 2"
-                  v-for="(supervisor, index) in task.supervisors"
-                  :label="'Supervisor Address #' + (index + 1)"
-                  :key="supervisor.key"
-                  :prop="'supervisors.' + index + '.address'"
-                  :rules="[
-                    { required: true, message: 'Supervisor address can not be null', trigger: 'blur' },
-                    { validator: checkEthereumAddress, trigger: 'blur' }
-                  ]">
-                    <el-input
-                        placeholder="Enter a supervisor (eth) address"
-                        v-model="supervisor.address">
-                        </el-input>
-                    <el-button @click="removeSupervisor(supervisor)" type="danger" :disabled="task.supervisors.length <= 1" plain round>Remove</el-button>
-                </el-form-item>
-                <el-form-item v-show="active === 2">
-                    <el-button @click="addSupervisor" type="success" plain round>Add Supervisor</el-button>
+                <el-form-item label="Supervisor Address" v-show="active === 2" prop="supervisor">
+                  <el-input
+                    placeholder="Enter a supervisor (eth) address"
+                    v-model="task.supervisor">
+                  </el-input>
                 </el-form-item>
                 <el-form-item v-show="active >= 3">
                   <el-card class="box-card">
@@ -53,7 +40,12 @@
                     </div>
                     <p class="preview-goal">Goal: {{ task.goal }}</p>
                     <p>Deadline: {{ task.deadline | moment('dddd, MMMM Do YYYY') }}</p>
-                    <p v-for="(supervisor, index) in task.supervisors" :key="index">Supervisor {{ index }}: <a :href="'https://etherscan.io/address/' + supervisor.address" target="_blank" rel="noopener noreferrer">{{ supervisor.address }}</a></p>
+                    <p>Supervisor: <a :href="'https://etherscan.io/address/' + task.supervisor" target="_blank" rel="noopener noreferrer">{{ task.supervisor }}</a></p>
+                    <hr/>
+                    <p>
+                      Please enter the value to stake:
+                      <el-input-number v-model="task.stake" :min="minimumStake"></el-input-number>
+                    </p>
                 </el-card>
                 </el-form-item>
                 <el-form-item>
@@ -71,7 +63,6 @@
 <script>
 import mixin from '../utils/mixinViews'
 import Steps from './partials/Steps.vue'
-import { filter, map } from 'lodash'
 
 export default {
   name: 'Home',
@@ -79,7 +70,25 @@ export default {
   mixins: [mixin],
 
   data() {
+    const checkEthereumAddress = (rule, value, callback) => {
+      if (!value.length) {
+        callback(new Error('Supervisor address cannot be null'))
+      } else if (
+        value.toLowerCase() === '0x0000000000000000000000000000000000000000'
+      ) {
+        callback(new Error('Not a valid Ethereum address'))
+      } else if (
+        value.toLowerCase() === window.web3.eth.coinbase.toLowerCase()
+      ) {
+        callback(new Error('You cannot set yourself as a supervisor'))
+      } else if (!window.web3.isAddress(value)) {
+        callback(new Error('Not a valid Ethereum address'))
+      } else {
+        callback()
+      }
+    }
     return {
+      minimumStake: 0,
       active: 0,
       loading: false,
       loadingText:
@@ -89,10 +98,16 @@ export default {
           return date <= new Date()
         }
       },
+      valid: {
+        goal: false,
+        deadline: false,
+        supervisor: false
+      },
       task: {
         goal: '',
         deadline: '',
-        supervisors: [{ key: 1, address: '' }]
+        supervisor: '',
+        stake: 0
       },
       rules: {
         goal: [
@@ -111,14 +126,15 @@ export default {
             message: 'Please pick a date',
             trigger: 'change'
           }
+        ],
+        supervisor: [
+          {
+            required: true,
+            message: 'Supervisor address can not be null',
+            trigger: 'blur'
+          },
+          { validator: checkEthereumAddress, trigger: 'blur' }
         ]
-      },
-      checkEthereumAddress: (rule, value, callback) => {
-        if (this.isAddressAllowed(value)) {
-          callback()
-        } else {
-          callback(new Error('Not a valid Ethereum address'))
-        }
       }
     }
   },
@@ -128,20 +144,15 @@ export default {
       return 140 - this.task.goal.length
     },
     disabledButton() {
-      if (this.active === 0 && this.task.goal.length < 1) {
+      if (this.active === 0 && !this.valid['goal']) {
         return true
       }
 
-      if (this.active === 1 && this.task.deadline.length < 1) {
+      if (this.active === 1 && !this.valid['deadline']) {
         return true
       }
 
-      if (
-        this.active > 1 &&
-        this.task.supervisors.filter(
-          supervisor => !this.isAddressAllowed(supervisor.address)
-        ).length > 0
-      ) {
+      if (this.active > 1 && !this.valid['supervisor']) {
         return true
       }
 
@@ -149,37 +160,25 @@ export default {
     }
   },
 
+  mounted() {
+    Event.$on('MinimumStakeChanged', (oldStake, newStake) => {
+      this.minimumStake = newStake.toNumber()
+      this.$message(
+        `The stake value has been changed from ${oldStake.toNumber()} to ${newStake.toNumber()}`
+      )
+    })
+
+    window.bc.contract().minimumStake.call((error, res) => {
+      this.minimumStake = error
+        ? window.web3.toWei('2', 'finney')
+        : res.toNumber()
+      this.task.stake = this.minimumStake
+    })
+  },
+
   methods: {
-    isAddressAllowed(address) {
-      if (!address.length) {
-        return false
-      }
-
-      address = address.toLowerCase()
-
-      if (address === '0x0000000000000000000000000000000000000000') {
-        return false
-      }
-
-      if (address === window.web3.eth.coinbase.toLowerCase()) {
-        return false
-      }
-
-      if (!window.web3.isAddress(address)) {
-        return false
-      }
-
-      const result = filter(this.task.supervisors, { address: address }).length
-      return result === 1
-    },
-    addSupervisor() {
-      this.task.supervisors.push({ key: Date.now(), address: '' })
-    },
-    removeSupervisor(item) {
-      let index = this.task.supervisors.indexOf(item)
-      if (index !== -1) {
-        this.task.supervisors.splice(index, 1)
-      }
+    onValidate(prop, valid) {
+      this.valid[prop] = valid
     },
     prev() {
       if (this.active > 2) {
@@ -213,10 +212,15 @@ export default {
       this.active = 0
       this.loading = false
       Event.$emit('lastStepUpdated', 'wait')
+      this.valid = {
+        goal: false,
+        deadline: false,
+        supervisor: false
+      }
       this.task = {
         goal: '',
         deadline: '',
-        supervisors: [{ key: 1, address: '' }]
+        supervisor: ''
       }
       document.getElementsByName('submit')[0].innerHTML = 'Next step'
       this.$refs[formName].resetFields()
@@ -228,11 +232,10 @@ export default {
             window.bc.contract().createTask(
               this.task.goal,
               this.$moment(this.task.deadline).unix(),
-              //map(this.task.supervisors, 'address'),
+              this.task.supervisor,
               {
                 from: window.bc.web3().eth.coinbase,
-                value: window.web3.toWei('2', 'finney'),
-                gas: 21000
+                value: this.task.stake
               },
               (err, txHash) => {
                 if (err) {
@@ -241,7 +244,8 @@ export default {
                   return false
                 } else {
                   Event.$emit('taskCreated', txHash)
-                  this.redirectWhenBlockMined()
+                  console.log('txHash', txHash)
+                  this.reset('task')
                 }
               }
             )
@@ -256,32 +260,6 @@ export default {
           return false
         }
       })
-    },
-    /**
-     * Once the user submitted his registration this funciton checks every 1000 ms
-     * if the registration is successfully. Once the user is registered he will be
-     * redirected to the profile page.
-     *
-     * NOTE: in order to check if the user has been registered successfully the
-     * function has to check several time because the block can take several
-     * minutes to be mined (depending on the configuration of the blockchain you
-     * are using).
-     */
-    redirectWhenBlockMined() {
-      this.tmoReg = setInterval(() => {
-        if (this.blockchainIsConnected()) {
-          window.bc.contract().getContractAddress.call((error, res) => {
-            if (error) {
-              this.$message.error(error)
-            } else if (res) {
-              // stopping the setInterval
-              clearInterval(this.tmoReg)
-              this.reset('task')
-              this.$router.push('profile')
-            }
-          })
-        }
-      }, 1000)
     }
   },
 

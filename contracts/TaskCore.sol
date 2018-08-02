@@ -17,7 +17,7 @@ contract TaskCore is TaskOwnership
     //
     //      - TaskBase: This is where we define the most fundamental code shared throughout the core
     //             functionality. This includes our main data storage, constants and data types, plus
-    //             internal functions for managing these items.    
+    //             internal functions for managing these items.
     //
     //      - TaskOwnership: This facet contains the functionality we use for managing tasks.
 
@@ -25,13 +25,14 @@ contract TaskCore is TaskOwnership
     constructor() public
     {
         serviceOwner = msg.sender;
+        minimumStake = 2 finney;
     }
 
     /// @notice No tipping!
     /// @dev Reject all Ether from being sent here.
     function() external payable
     {
-        require(false);
+        require(false, "No tipping allowed");
     }
 
     /// @dev Creates a new task for the requested address.
@@ -39,38 +40,27 @@ contract TaskCore is TaskOwnership
     ///
     /// @param _goal The task's goal.
     /// @param _deadline The task's deadline.
-    function createTask(string _goal, uint _deadline) public payable
+    /// @param _supervisor The task's supervisor.
+    function createTask(string _goal, uint _deadline, address _supervisor) public payable returns (uint)
     {
-        require(msg.sender != address(0));
-        require(msg.value >= 2 finney);
-        require(bytes(_goal).length > 0);
-        require(_deadline >= now);
-        
-        _createTask(_goal, _deadline, msg.value, msg.sender);
+        require(bytes(_goal).length > 0, "Goal must not be null or empty");
+        require(_deadline >= now, "Deadline must be greater than current block time");
+        require(_supervisor != address(0), "Supervisor address must not be null");
+        require(_supervisor != msg.sender, "The Creator and the Supervisor address must be different");
+        require(msg.sender != address(0), "Creator address must not be null");
+        require(msg.value >= minimumStake, "The minimum stake is not met");
+
+        return _createTask(_goal, _deadline, _supervisor, msg.value, msg.sender);
     }
 
     /// @notice Returns all the relevant information about a specific task.
     ///
     /// @param _taskId The ID of the task of interest.
-    /// @return object The goal, the deadline, the stake, the fulfillment status
-    ///   and the expiration status of the task.
-    function getTask(uint _taskId) public view
-        returns (string goal, uint deadline, uint stake, bool fulfilled, bool expired)
+    /// @return object The task's details.
+    function getTask(uint _taskId) external view
+        returns (string goal, uint deadline, address supervisor, uint stake, TaskState state)
     {
-        Task memory task = tasks[_taskId];
-        
-        goal = task.goal;
-        deadline = task.deadline;
-        stake = task.stake;
-        fulfilled = task.confirmationRequest.fulfilled;
-        expired = task.deadline < now;
-    }
-
-    /// @dev Returns the address of the contract.
-    ///
-    /// @return address The address of the contract.
-    function getContractAddress() public view returns (address)
-    {
-        return address(this);
+        Task storage task = tasks[_taskId];
+        return (task.goal, task.deadline, task.supervisor, task.stake, task.state);
     }
 }

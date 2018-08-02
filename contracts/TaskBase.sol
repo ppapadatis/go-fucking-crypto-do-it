@@ -9,45 +9,26 @@ contract TaskBase is TaskAccessControl
 {
     /*** EVENTS ***/
 
-    /// @dev The Creation event is fired whenever a new task comes into existence.
-    event Creation(address indexed owner, uint taskId);
+    /// @dev The Created event is fired whenever a new task comes into existence.
+    event Created(address indexed owner, uint taskId);
 
-    /// @dev The Transfer event is fired every time a task ownership is assigned.
-    event Transfer(address indexed from, address indexed to, uint taskId);
-
-    /// @dev The Supervised event is fired whenever an address is
-    ///  being set as a supervisor.
-    event Supervised(address[] supervisors, uint taskId);
-
-    /// @dev The Approved event is fired when a supervisor approves a task.
-    event Approved(address indexed supervisor, uint taskId);
+    /// @dev The Confirmed event is fired when a supervisor approves a task.
+    event Confirmed(address indexed supervisor, uint taskId);
 
     /// @dev The Fulfilled event is fired when a task is marked fulfilled.
     event Fulfilled(address indexed owner, uint taskId);
-    
+
+    /// @dev The Expired event is fired when a task is expired.
+    event Expired(uint taskId);
+
     /*** DATA TYPES ***/
-    
-    /// @dev The Confirmation Request struct. Every task in order to be fulfilled,
-    ///  the accounts marked as supervisors must confirm it for the user to
-    ///  be able to withdraw his/her stake.
-    struct ConfirmationRequest
-    {
-        // A flag to check whether the request is fulfilled or not.
-        bool fulfilled;
 
-        // A counter for supervisors that have confirmed the request.
-        uint confirmationsCount;
-
-        // A mapping from supervisor address to a bool flag that marks them as confirmers.
-        mapping (address => bool) confirmers;
-    }
+    /// @dev The lifecycle of a task.
+    enum TaskState { InProgress, Confirmed, Fulfilled, Expired }
 
     /// @dev The main Task struct
     struct Task
     {
-        /// @dev The confirmation request struct for the task.
-        ConfirmationRequest confirmationRequest;
-
         /// @dev A description for the goal to achieve.
         string goal;
 
@@ -57,23 +38,23 @@ contract TaskBase is TaskAccessControl
         /// @dev The value to stake until fulfilled.
         uint stake;
 
-        /// @dev A counter for the supervisors of the task.
-        uint supervisorsCount;
+        /// @dev The state of the task.
+        TaskState state;
 
-        /// @dev A mapping from supervisor address to a bool flag that marks them as such.
-        mapping (address => bool) supervisors;
+        /// @dev Supervisor's address.
+        address supervisor;
     }
 
     /** STORAGE ***/
 
     /// @dev An array containing the Task struct for all tasks in existence.
-    Task[] tasks;
+    Task[] internal tasks;
 
-    /// @dev A mapping from task IDs to the address that owns them. 
+    /// @dev A mapping from task IDs to the address that owns them.
     mapping (uint => address) public taskIndexToOwner;
 
     /// @dev A mapping from owner address to count of tasks that address owns.
-    mapping (address => uint) ownershipTaskCount;
+    mapping (address => uint) internal ownershipTaskCount;
 
     /// @dev Assigns ownership of a specific Task to an address.
     ///
@@ -87,8 +68,6 @@ contract TaskBase is TaskAccessControl
         if (_from != address(0)) {
             ownershipTaskCount[_from]--;
         }
-
-        emit Transfer(_from, _to, _taskId);
     }
 
     /// @dev An internal method that creates a new Task and stores it. This
@@ -97,30 +76,26 @@ contract TaskBase is TaskAccessControl
     ///
     /// @param _goal The task's goal.
     /// @param _deadline The task's deadline.
+    /// @param _supervisor Supervisor's address.
     /// @param _stake The task's stake value.
     /// @param _owner The inital owner of this task, must be non-zero.
-    /// @return uint The task's id
-    function _createTask(string _goal, uint _deadline, uint _stake, address _owner) internal 
+    /// @return uint The task's id.
+    function _createTask(string _goal, uint _deadline, address _supervisor, uint _stake, address _owner) internal
         returns (uint)
     {
-        ConfirmationRequest memory _request = ConfirmationRequest({
-            fulfilled: false,
-            confirmationsCount: 0
-        });
-        
-        Task memory _task = Task({ 
+        Task memory _task = Task({
             goal: _goal,
             deadline: _deadline,
             stake: _stake,
-            supervisorsCount: 0,
-            confirmationRequest: _request
+            state: TaskState.InProgress,
+            supervisor: _supervisor
         });
 
         uint newTaskIndex = tasks.push(_task) - 1;
 
-        emit Creation(_owner, newTaskIndex);
         _transfer(0, _owner, newTaskIndex);
+        emit Created(_owner, newTaskIndex);
 
         return newTaskIndex;
-    }    
+    }
 }

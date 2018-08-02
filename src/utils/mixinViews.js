@@ -33,7 +33,7 @@ let mixinViews = {
             // is correct. NOTE: here you might be connected successfully.
             // TODO: the check of the smart contract address validity it should be BcExplorer duty
             try {
-              window.bc.contract().getContractAddress.call((errorReg, res) => {
+              window.bc.contract().serviceOwner.call((errorReg, res) => {
                 if (errorReg) {
                   this.bcConnectionError = true
                   this.bcSmartContractAddressError = true
