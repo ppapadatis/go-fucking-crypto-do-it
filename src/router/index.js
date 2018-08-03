@@ -11,15 +11,15 @@ export default new Router({
   mode: 'history',
   routes: [
     {
-      path: '',
+      path: '/',
       name: 'Home',
       component: Home
     },
     {
-      path: 'my-tasks',
+      path: '/my-tasks',
       name: 'My Tasks',
       component: TaskList,
-      children: [{ path: ':id', name: 'Task', component: SingleTask }]
+      children: [{ path: '/:id', name: 'Task', component: SingleTask }]
     },
     {
       path: '*',

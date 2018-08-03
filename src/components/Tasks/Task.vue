@@ -7,11 +7,11 @@
           </div>
           <p class="preview-goal">Goal: {{ task.goal }}</p>
           <p>Deadline: {{ task.deadline | moment('dddd, MMMM Do YYYY') }}</p>
-          <p>Supervisor: <a :href="'https://etherscan.io/address/' + task.supervisor" target="_blank" rel="noopener noreferrer">{{ task.supervisor }}</a></p>
+          <p>Supervisor: <a :href="`${this.getEtherscan()}/address/' + task.supervisor`" target="_blank" rel="noopener noreferrer">{{ task.supervisor }}</a></p>
           <hr/>
           <p>Staked value: {{ task.stake }}</p>
           <hr/>
-          <p>View on etherscan: <a :href="'https://etherscan.io/address/' + task.txHash" target="_blank" rel="noopener noreferrer">{{ task.txHash }}</a></p>
+          <p>View on etherscan: <a :href="`${this.getEtherscan()}/address/${task.txHash}`" target="_blank" rel="noopener noreferrer">{{ task.txHash }}</a></p>
       </el-card>
     </el-col>
   </el-row>
@@ -21,7 +21,7 @@
 import mixin from '../../utils/mixinViews'
 
 export default {
-  name: 'Single Task',
+  name: 'SingleTask',
   mixins: [mixin],
   props: ['txHash'],
   data() {

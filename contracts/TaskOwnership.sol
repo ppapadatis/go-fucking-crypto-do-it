@@ -59,9 +59,9 @@ contract TaskOwnership is TaskBase
     /// @notice This method MUST NEVER be called by smart contract code.
     ///  It's expensive because it walks the entire tasks array and also
     ///  returns a dynamic array, which is only supported for web3 calls.
-    /// @dev Returns a list of all Kitty IDs assigned to an address.
+    /// @dev Returns a list of all Task IDs assigned to an address.
     ///
-    /// @param _owner The owner whose Kitties we are interested in.
+    /// @param _owner The owner whose Tasks we are interested in.
     /// @return uint[] An array of all tasks owned by a given address.
     function getTasksOfOwner(address _owner) external view returns (uint[])
     {

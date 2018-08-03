@@ -13,7 +13,9 @@ module.exports = {
       provider: () => {
         return new HDWalletProvider(
           privateKey,
-          `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`
+          `https://${process.env.INFURA_NETWORK}.infura.io/v3/${
+            process.env.INFURA_API_KEY
+          }`
         )
       },
       from: address,

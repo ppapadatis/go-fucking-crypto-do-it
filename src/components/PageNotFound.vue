@@ -6,7 +6,7 @@
 import mixin from '../utils/mixinViews'
 
 export default {
-  name: 'Page Not Found',
+  name: 'PageNotFound',
   mixins: [mixin]
 }
 </script>

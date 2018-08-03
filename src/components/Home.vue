@@ -47,7 +47,7 @@
                     </div>
                     <p class="preview-goal">Goal: {{ task.goal }}</p>
                     <p>Deadline: {{ task.deadline | moment('dddd, MMMM Do YYYY') }}</p>
-                    <p>Supervisor: <a :href="'https://etherscan.io/address/' + task.supervisor" target="_blank" rel="noopener noreferrer">{{ task.supervisor }}</a></p>
+                    <p>Supervisor: <a :href="`${this.getEtherscan()}/address/${task.supervisor}`" target="_blank" rel="noopener noreferrer">{{ task.supervisor }}</a></p>
                     <hr/>
                     <p>
                       Set Price
@@ -107,7 +107,7 @@ export default {
         { icon: 'el-icon-edit', title: 'Set Goal' },
         { icon: 'el-icon-date', title: 'Set Deadline' },
         { icon: 'el-icon-view', title: 'Set Supervisor' },
-        { icon: 'el-icon-check', title: 'Go Fucking - Crypto - Do It' },
+        { icon: 'el-icon-check', title: 'Go Fucking -Crypto- Do It' },
         { icon: 'el-icon-loading', title: 'Creating Task...' }
       ],
       datePickerOptions: {
@@ -122,7 +122,7 @@ export default {
       },
       task: {
         goal: '',
-        deadline: Date.now(),
+        deadline: '',
         supervisor: '',
         stake: 0
       },
@@ -184,13 +184,6 @@ export default {
     }
   },
 
-  created() {
-    Event.$on('userConnected', () => {
-      this.subscribeToEvents()
-      this.updateMinimumStake()
-    })
-  },
-
   methods: {
     onValidate(prop, valid) {
       this.valid[prop] = valid
@@ -220,7 +213,6 @@ export default {
       }
       this.$refs[formName].resetFields()
       this.task.stake = this.minimumStake
-      this.task.deadline = Date.now()
     },
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
@@ -241,7 +233,15 @@ export default {
                   this.active = 3
                   return false
                 } else {
-                  Event.$emit('taskCreated', txHash)
+                  this.$message({
+                    message: 'Congrats, this is a success message.',
+                    type: 'success'
+                  })
+                  this.$message({
+                    dangerouslyUseHTMLString: true,
+                    message: `Congratulations, your task has been set!<br/>You can manually check the transaction progress <a href="${this.getEtherscan()}/tx/${txHash}" target="_blank" rel="noopener noreferrer">here</a>.`,
+                    type: 'success'
+                  })
                   this.reset('task')
                 }
               }
@@ -267,19 +267,25 @@ export default {
           : res.toNumber()
         this.task.stake = this.minimumStake
       })
-    },
-    subscribeToEvents() {
-      window.bc
-        .contract()
-        .Created({}, { fromBlock: 0, toBlock: 'latest' })
-        .watch((err, response) => {
+    }
+  },
+
+  created() {
+    Event.$on('userConnected', this.updateMinimumStake)
+    Event.$on('userConnected', () => {
+      this.subscribeContractEvent(
+        'Created',
+        {},
+        { fromBlock: 'latest' },
+        (err, response) => {
           if (err) {
             console.error(err)
           } else {
             console.log('created event', response)
           }
-        })
-    }
+        }
+      )
+    })
   }
 }
 </script>
