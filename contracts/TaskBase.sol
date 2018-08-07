@@ -1,16 +1,20 @@
 pragma solidity ^0.4.22;
 
-import "./TaskAccessControl.sol";
+import './TaskAccessControl.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 /// @title Base contract for CryptoTasks. Holds all common structs, events and base variables.
 /// @author Panagiotis Papadatis (https://github.com/ppapadatis)
 /// @dev See the TaskCore contract documentation to understand how the various contract facets are arranged.
 contract TaskBase is TaskAccessControl
 {
+    /*** Libraries ***/
+    using SafeMath for uint256;
+
     /*** EVENTS ***/
 
     /// @dev The Created event is fired whenever a new task comes into existence.
-    event Created(address indexed owner, uint taskId);
+    event Created(address indexed owner, uint taskId, string goal, uint deadline, address supervisor, uint stake);
 
     /// @dev The Confirmed event is fired when a supervisor approves a task.
     event Confirmed(address indexed supervisor, uint taskId);
@@ -63,10 +67,10 @@ contract TaskBase is TaskAccessControl
     /// @param _taskId The task index to transfer.
     function _transfer(address _from, address _to, uint _taskId) internal
     {
-        ownershipTaskCount[_to]++;
+        ownershipTaskCount[_to] = ownershipTaskCount[_to].add(1);
         taskIndexToOwner[_taskId] = _to;
         if (_from != address(0)) {
-            ownershipTaskCount[_from]--;
+            ownershipTaskCount[_from] = ownershipTaskCount[_from].sub(1);
         }
     }
 
@@ -94,7 +98,7 @@ contract TaskBase is TaskAccessControl
         uint newTaskIndex = tasks.push(_task) - 1;
 
         _transfer(0, _owner, newTaskIndex);
-        emit Created(_owner, newTaskIndex);
+        emit Created(_owner, newTaskIndex, _goal, _deadline, _supervisor, _stake);
 
         return newTaskIndex;
     }

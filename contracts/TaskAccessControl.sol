@@ -20,7 +20,7 @@ contract TaskAccessControl
     /// @dev Access modifier for Service Owner-only functionality.
     modifier onlyServiceOwner
     {
-        require(msg.sender == serviceOwner);
+        require(msg.sender == serviceOwner, "Only authorized owner permitted");
         _;
     }
 
@@ -30,7 +30,7 @@ contract TaskAccessControl
     function setMinimumStake(uint _stake) public onlyServiceOwner
     {
         require(_stake != minimumStake, "New and old stake must not be the same");
-                
+
         minimumStake = _stake;
         emit MinimumStakeChanged(minimumStake, _stake);
     }

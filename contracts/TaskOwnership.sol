@@ -1,6 +1,6 @@
 pragma solidity ^0.4.22;
 
-import "./TaskBase.sol";
+import './TaskBase.sol';
 
 /// @title Ownership contract for CryptoTasks. Holds all common functionality.
 /// @author Panagiotis Papadatis (https://github.com/ppapadatis)
@@ -79,7 +79,7 @@ contract TaskOwnership is TaskBase
         for (uint taskIndex = 0; taskIndex < totalTasks; taskIndex++) {
             if (taskIndexToOwner[taskIndex] == _owner) {
                 result[resultIndex] = taskIndex;
-                resultIndex++;
+                resultIndex = resultIndex.add(1);
             }
         }
 
@@ -119,7 +119,7 @@ contract TaskOwnership is TaskBase
     function claimStake(uint _taskId) public onlyServiceOwner
     {
         require(!_inProgress(_taskId), "Task must have missed the deadline");
-        
+
         Task storage task = tasks[_taskId];
         task.state = TaskState.Expired;
         serviceOwner.transfer(task.stake);

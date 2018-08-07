@@ -1,6 +1,6 @@
 pragma solidity ^0.4.22;
 
-import "./TaskOwnership.sol";
+import './TaskOwnership.sol';
 
 /// @title CryptoTasks: Tasks on the Ethereum Blockchain.
 /// @author Panagiotis Papadatis (https://github.com/ppapadatis)
