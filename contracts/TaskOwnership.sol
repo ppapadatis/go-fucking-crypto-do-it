@@ -38,6 +38,15 @@ contract TaskOwnership is TaskBase
         return tasks[_taskId].state == TaskState.InProgress && tasks[_taskId].deadline >= now;
     }
 
+    /// @dev Returns the owner of the given task ID.
+    ///
+    /// @param _taskId The ID of the task.
+    /// @return address The address of the owner.
+    function getOwnerOfTask(uint _taskId) public view returns (address)
+    {
+        return taskIndexToOwner[_taskId];
+    }
+
     /// @dev Returns the total number of tasks.
     ///
     /// @return uint The total number of tasks.
@@ -96,7 +105,7 @@ contract TaskOwnership is TaskBase
 
         Task storage task = tasks[_taskId];
         task.state = TaskState.Confirmed;
-        emit Confirmed(msg.sender, _taskId);
+        emit Confirmed(taskIndexToOwner[_taskId], _taskId, task.goal, task.deadline, msg.sender, task.stake);
     }
 
     /// @dev Grants the task's owner to withdraw the stake
@@ -111,7 +120,7 @@ contract TaskOwnership is TaskBase
         Task storage task = tasks[_taskId];
         tasks[_taskId].state = TaskState.Fulfilled;
         msg.sender.transfer(task.stake);
-        emit Fulfilled(msg.sender, _taskId);
+        emit Fulfilled(msg.sender, _taskId, task.goal, task.deadline, task.supervisor, task.stake);
     }
 
     /// @dev Grants the service owner the ability to claim the stake
@@ -123,6 +132,6 @@ contract TaskOwnership is TaskBase
         Task storage task = tasks[_taskId];
         task.state = TaskState.Expired;
         serviceOwner.transfer(task.stake);
-        emit Expired(_taskId);
+        emit Expired(taskIndexToOwner[_taskId], _taskId, task.goal, task.deadline, serviceOwner, task.stake);
     }
 }

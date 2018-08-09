@@ -82,10 +82,11 @@ class BcExplorer {
    * the migration.
    *
    * @param {Object} compiledJson compiled JSON from truffle
+   * @param {string} networkId
    * @param {string} contractName contract name (required if you are initializing more then one contract)
    * @return {Promise}
    */
-  initContractJson(compiledJson, contractName, networkId) {
+  initContractJson(compiledJson, networkId, contractName) {
     networkId = networkId || null
 
     // if the networkId is not provided it will find out
@@ -114,12 +115,13 @@ class BcExplorer {
    *
    * @param {Object} compiledJson
    * @param {string} addressUrl
+   * @param {string} networkId
    * @param {string} contractName contract name (required if you are initializing more then one contract)
    * @return {Promise}
    */
-  initWithContractJson(compiledJson, addressUrl, contractName, networkId) {
+  initWithContractJson(compiledJson, addressUrl, networkId, contractName) {
     return this.init(addressUrl).then(() => {
-      return this.initContractJson(compiledJson, contractName, networkId)
+      return this.initContractJson(compiledJson, networkId, contractName)
     })
   }
 
@@ -149,7 +151,7 @@ class BcExplorer {
 
     if (this.web3inst) return this.web3inst
 
-    console.error('BcExplorer error: Web3 is not initialized.')
+    this.log('BcExplorer error: Web3 is not initialized.', 'error')
   }
 
   /**
@@ -169,7 +171,7 @@ class BcExplorer {
    */
   contract(contractName) {
     if (this.countContracts() === 0) {
-      console.error('BcExplorer error: contract is not initialized.')
+      this.log('BcExplorer error: contract is not initialized.', 'error')
 
       return
     }
@@ -177,7 +179,7 @@ class BcExplorer {
     contractName = this.contractDefaultName(contractName)
 
     if (typeof this.contractInst[contractName] === 'undefined') {
-      console.error('BcExplorer error: contract does not exist.')
+      this.log('BcExplorer error: contract does not exist.', 'error')
 
       return
     }
@@ -194,8 +196,9 @@ class BcExplorer {
    */
   performInitContractJson(networkId, compiledJson, contractName) {
     if (typeof compiledJson['abi'] === 'undefined') {
-      console.error(
-        'BcExplorer error: missing ABI in the compiled Truffle JSON.'
+      this.log(
+        'BcExplorer error: missing ABI in the compiled Truffle JSON.',
+        'error'
       )
       return false
     }
@@ -206,8 +209,9 @@ class BcExplorer {
       typeof compiledJson['networks'] === 'undefined' ||
       compiledJson['networks'][networkId] === undefined
     ) {
-      console.error(
-        'BcExplorer error: missing networkId in the compiled Truffle JSON.'
+      this.log(
+        'BcExplorer error: missing networkId in the compiled Truffle JSON.',
+        'error'
       )
       return false
     }
@@ -243,7 +247,7 @@ class BcExplorer {
     return new Promise((resolve, reject) => {
       this.web3().version.getNetwork((error, networkId) => {
         if (error) {
-          console.error(error)
+          this.log(error, 'error')
           reject(new Error('BcExplorer error: networkId not available.'))
         } else {
           this.info.networkId = networkId
@@ -323,46 +327,6 @@ class BcExplorer {
       })
   }
 
-  /* ********************************************* */
-  /* ************* UTILITY FUNCTIONS ************* */
-  /* ********************************************* */
-
-  /**
-   * Tranform the balance from Wei to Ether
-   *
-   * @param {mixed} bal
-   * @return {numeric}
-   */
-  weiToEther(bal) {
-    if (typeof bal === 'object') {
-      bal = bal.toNumber()
-    }
-
-    return this.web3().fromWei(bal, 'ether')
-  }
-
-  /**
-   * Transform the parameter from bytes to string.
-   *
-   * @param {string} bytes
-   * @return {string}
-   */
-  toAscii(bytes) {
-    return this.web3()
-      .toAscii(bytes)
-      .replace(/\u0000/g, '')
-  }
-
-  /**
-   * Transform a timestamp number to date.
-   *
-   * @param {numeric} bytes
-   * @return {string}
-   */
-  toDate(timestamp) {
-    return new Date(timestamp * 1000).toISOString()
-  }
-
   /**
    * Count the initialized contracts. Note that array of the initialized
    * contracts is an array key => value.
@@ -391,6 +355,18 @@ class BcExplorer {
     if (!contractName || !contractName.length) contractName = 'default'
 
     return contractName
+  }
+
+  /**
+   * Logs the input in non production environment.
+   *
+   * @param {any} input
+   * @param {string} mode
+   */
+  log(input, mode = 'log', label = 'bc_log') {
+    if (process.env.NODE_ENV !== 'production') {
+      console[mode](label, input)
+    }
   }
 }
 

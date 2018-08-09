@@ -4,11 +4,11 @@
         <h3 class="headline mb-0">Task Details:</h3>
         <p class="preview-goal">Goal: {{ task.goal }}</p>
         <p>Deadline: {{ task.deadline | moment('dddd, MMMM Do YYYY') }}<br/>{{ task.deadline | moment('from') }}</p>
-        <p>Supervisor: <a :href="`${etherscanAddress}/address/${task.supervisor}`" target="_blank" rel="noopener noreferrer">{{ task.supervisor }}</a></p>
+        <p>Owner: <a :href="`${etherscanAddress}/address/${task.owner}`" target="_blank" rel="noopener noreferrer">{{ task.owner }}</a></p>
         <p>Stake: {{ task.stake | etherprice }}</p>
         <p>Status: {{ status }}</p>
 
-        <v-btn color="success" v-if="userIsTaskOwner" :disabled="disableWithdraw" @click="withdrawStake">Withdraw</v-btn>
+        <v-btn color="success" v-if="userIsTaskSupervisor" :disabled="disableConfirm" @click="confirmTask">Confirm</v-btn>
         <v-btn color="success" v-if="userIsContractOwner" :disabled="disableClaim" @click="claimStake">Claim</v-btn>
       </v-flex>
   </v-layout>
@@ -19,7 +19,7 @@ import mixin from '../../utils/mixinViews'
 import { TASK_STATUSES } from '../../utils/constants'
 
 export default {
-  name: 'SingleTask',
+  name: 'WatchTask',
   mixins: [mixin],
   data() {
     return {
@@ -37,17 +37,24 @@ export default {
     status() {
       return TASK_STATUSES[this.task.status]
     },
-    userIsTaskOwner() {
+    userIsTaskSupervisor() {
       return (
-        window.web3.eth.coinbase.toLowerCase() === this.task.owner.toLowerCase()
+        window.web3.eth.coinbase.toLowerCase() ===
+        this.task.supervisor.toLowerCase()
       )
     },
-    disableWithdraw() {
-      if (!this.userIsContractOwner) {
+    disableConfirm() {
+      if (!this.userIsTaskSupervisor) {
         return true
       }
 
-      return this.task.status !== 1
+      return (
+        this.task.status !== 0 ||
+        this.task.deadline <
+          this.$moment()
+            .endOf('day')
+            .unix()
+      )
     },
     disableClaim() {
       if (!this.userIsContractOwner) {
@@ -99,17 +106,17 @@ export default {
     })
   },
   methods: {
-    withdrawStake() {
+    confirmTask() {
       window.bc
         .contract()
-        .withdrawStake(
+        .confirmTask(
           this.$route.params.id,
           { from: window.web3.eth.coinbase },
           (err, res) => {
             if (err) {
               window.bc.log(err, 'error')
             } else {
-              this.task.status = 2
+              this.task.status = 1
             }
           }
         )

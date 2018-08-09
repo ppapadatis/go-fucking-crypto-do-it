@@ -4,54 +4,58 @@ import TaskContract from '../../build/contracts/TaskCore.json'
 let mixinViews = {
   data() {
     return {
-      initConnection: true,
-      bcConnected: false, // true when the connection with the blockchain is established, plus the contract ABI + address is correctly initialized
+      bcConnected: false,
       bcConnectionError: false,
       bcSmartContractAddressError: false,
-      filter: {}
+      filter: {},
+      userIsConnected: false,
+      serviceOwner: ''
     }
   },
 
-  created() {
-    if (window.bc === undefined) {
+  mounted() {
+    if (typeof window.bc === 'undefined') {
       window.bc = new BcExplorer()
-
-      window.bc
-        .initWithContractJson(
-          TaskContract,
-          `https://${process.env.INFURA_NETWORK}.infura.io/v3/${
-            process.env.INFURA_API_KEY
-          }`
-        )
-        .then(error => {
-          this.initConnection = false
-          // handling the connection error
-          if (error) {
-            this.bcConnectionError = true
-            this.bcConnected = false
-            this.$message.error(error)
-          } else {
-            try {
-              window.bc.contract().serviceOwner.call((errorReg, res) => {
-                if (errorReg) {
-                  this.bcConnectionError = true
-                  this.bcSmartContractAddressError = true
-                  this.$message.error(errorReg)
-                }
-              })
-            } catch (err) {
-              this.bcConnectionError = true
-              this.$message.error(err.message)
-            } finally {
-              this.bcConnected = this.blockchainIsConnected()
-            }
-          }
-        })
     }
+
+    window.bc
+      .initWithContractJson(
+        TaskContract,
+        `https://${process.env.INFURA_NETWORK}.infura.io/v3/${
+          process.env.INFURA_API_KEY
+        }`,
+        4
+      )
+      .then(error => {
+        if (error) {
+          this.bcConnectionError = true
+          this.bcConnected = false
+          window.bc.log(error, 'error')
+        } else {
+          try {
+            window.bc.contract().serviceOwner.call((errorReg, res) => {
+              if (errorReg) {
+                this.bcConnectionError = true
+                this.bcSmartContractAddressError = true
+                window.bc.log(errorReg, 'error')
+              } else if (res) {
+                this.userIsConnected = true
+                this.serviceOwner = res
+                Event.$emit('userConnected')
+              }
+            })
+          } catch (err) {
+            this.bcConnectionError = true
+            window.bc.log(err, 'error')
+          } finally {
+            this.bcConnected = this.blockchainIsConnected()
+          }
+        }
+      })
   },
 
-  methods: {
-    getEtherscan() {
+  computed: {
+    etherscanAddress() {
       if (process.env.INFURA_NETWORK === 'mainnet') {
         return 'https://etherscan.io'
       }
@@ -59,15 +63,25 @@ let mixinViews = {
       return `https://${process.env.INFURA_NETWORK}.etherscan.io`
     },
 
-    blockchainIsConnected() {
-      this.bcConnected = window.bc !== undefined && window.bc.isConnected()
+    userIsContractOwner() {
+      return (
+        window.web3.eth.coinbase.toLowerCase() ===
+        this.serviceOwner.toLowerCase()
+      )
+    }
+  },
 
+  methods: {
+    blockchainIsConnected() {
+      this.bcConnected =
+        typeof window.bc !== 'undefined' && window.web3.isConnected()
       return this.bcConnected
     },
 
     subscribeContractEvent(eventName, eventParams, filters, callback) {
       try {
-        this.filter[eventName] = window.bc.contract()[eventName](eventParams, filters)
+        this.filter[eventName] = window.bc
+          .contract()[eventName](eventParams, filters)
         this.filter[eventName].watch(callback)
       } catch (err) {
         throw err
@@ -78,14 +92,6 @@ let mixinViews = {
       if (this.filter[eventName]) {
         this.filter[eventName].stopWatching()
       }
-    },
-
-    toAscii(bytesStr) {
-      return window.bc.toAscii(bytesStr)
-    },
-
-    toDate(timestamp) {
-      return new Date(timestamp * 1000).toISOString()
     }
   }
 }

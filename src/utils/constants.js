@@ -7,3 +7,10 @@ export const NETWORKS = {
   '4447': 'Truffle Develop Network',
   '5777': 'Ganache Blockchain'
 }
+
+export const TASK_STATUSES = {
+  '0': 'In Progress',
+  '1': 'Confirmed',
+  '2': 'Fulfilled',
+  '3': 'Expired'
+}

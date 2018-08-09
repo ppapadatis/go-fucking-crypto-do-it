@@ -14,16 +14,16 @@ contract TaskBase is TaskAccessControl
     /*** EVENTS ***/
 
     /// @dev The Created event is fired whenever a new task comes into existence.
-    event Created(address indexed owner, uint taskId, string goal, uint deadline, address supervisor, uint stake);
+    event Created(address indexed owner, uint indexed taskId, string goal, uint deadline, address indexed supervisor, uint stake);
 
     /// @dev The Confirmed event is fired when a supervisor approves a task.
-    event Confirmed(address indexed supervisor, uint taskId);
+    event Confirmed(address indexed owner, uint indexed taskId, string goal, uint deadline, address indexed supervisor, uint stake);
 
     /// @dev The Fulfilled event is fired when a task is marked fulfilled.
-    event Fulfilled(address indexed owner, uint taskId);
+    event Fulfilled(address indexed owner, uint indexed taskId, string goal, uint deadline, address indexed supervisor, uint stake);
 
     /// @dev The Expired event is fired when a task is expired.
-    event Expired(uint taskId);
+    event Expired(address indexed owner, uint indexed taskId, string goal, uint deadline, address indexed supervisor, uint stake);
 
     /*** DATA TYPES ***/
 
