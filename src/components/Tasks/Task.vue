@@ -104,8 +104,14 @@ export default {
     Event.$off('contractStatusUpdate')
   },
   mounted() {
-    Event.$on('contractStatusUpdate', value => {
-      this.task.status = value
+    Event.$on('contractStatusUpdate', (taskId, status) => {
+      if (typeof this.$route.params.id === 'undefined') {
+        return false
+      }
+
+      if (parseInt(taskId) === parseInt(this.$route.params.id)) {
+        this.task.status = status
+      }
     })
 
     Event.$on('userConnected', () => {
@@ -161,7 +167,10 @@ export default {
             if (err) {
               window.bc.log(err, 'error')
             } else {
-              Event.$emit('contractStatusUpdate', 2)
+              Event.$emit('contractStatusUpdate', {
+                taskId: this.$route.params.id,
+                status: 2
+              })
             }
 
             this.loading = false
@@ -180,7 +189,10 @@ export default {
             if (err) {
               window.bc.log(err, 'error')
             } else {
-              Event.$emit('contractStatusUpdate', 3)
+              Event.$emit('contractStatusUpdate', {
+                taskId: this.$route.params.id,
+                status: 3
+              })
             }
 
             this.loading = false
