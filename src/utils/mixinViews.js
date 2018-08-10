@@ -98,6 +98,10 @@ let mixinViews = {
         this.filter[eventName].stopWatching()
       }
     }
+  },
+
+  unmounted() {
+    Event.$off('userConnected')
   }
 }
 

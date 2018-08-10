@@ -233,6 +233,9 @@ export default {
         }
       )
     })
+  },
+  unmounted() {
+    this.unsubscribeContractEvent('Created')
   }
 }
 </script>

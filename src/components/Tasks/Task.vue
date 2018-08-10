@@ -1,15 +1,47 @@
 <template>
   <v-layout align-center row fill-height wrap>
       <v-flex lg8 offset-lg2 md10 offset-md1 sm12>
-        <h3 class="headline mb-0">Task Details:</h3>
-        <p class="preview-goal">Goal: {{ task.goal }}</p>
-        <p>Deadline: {{ task.deadline | moment('dddd, MMMM Do YYYY') }}<br/>{{ task.deadline | moment('from') }}</p>
-        <p>Supervisor: <a :href="`${etherscanAddress}/address/${task.supervisor}`" target="_blank" rel="noopener noreferrer">{{ task.supervisor }}</a></p>
-        <p>Stake: {{ task.stake | etherprice }}</p>
-        <p>Status: {{ status }}</p>
-
-        <v-btn color="success" v-if="userIsTaskOwner" :disabled="disableWithdraw" @click="withdrawStake">Withdraw</v-btn>
-        <v-btn color="success" v-if="userIsContractOwner" :disabled="disableClaim" @click="claimStake">Claim</v-btn>
+        <v-dialog v-model="loading" persistent width="300">
+          <v-card color="primary" dark>
+            <v-card-text>
+              <p>Please wait until the process is finished successully.</p>
+              <p><strong>Do not close or reload this tab!</strong></p>
+              <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
+        <template v-if="!loading">
+          <h2>Task Details</h2>
+          <v-card>
+            <v-list two-line>
+              <v-subheader class="preview-goal">Goal: {{ task.goal }}</v-subheader>
+              <v-divider></v-divider>
+              <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-sub-title class="text--primary">Supervisor: <a :href="`${etherscanAddress}/address/${task.supervisor}`" target="_blank" rel="noopener noreferrer">{{ task.supervisor }}</a></v-list-tile-sub-title>
+                  <v-list-tile-sub-title>Stake: {{ task.stake | etherprice }}</v-list-tile-sub-title>
+                </v-list-tile-content>
+                <v-list-tile-action>
+                  <v-list-tile-action-text>
+                    <v-tooltip top>
+                      <span slot="activator">{{ task.deadline | moment('from') }}</span>
+                      <span>{{ task.deadline | moment('dddd, MMMM Do YYYY') }}</span>
+                    </v-tooltip>
+                  </v-list-tile-action-text>
+                  <v-tooltip top>
+                      <span slot="activator"><v-icon color="grey lighten-1">fas fa-{{ icon }}</v-icon></span>
+                      <span>{{ status }}</span>
+                    </v-tooltip>
+                </v-list-tile-action>
+              </v-list-tile>
+              <v-divider></v-divider>
+              <div class="text-xs-right">
+                <v-btn color="primary" v-if="userIsTaskOwner" :disabled="disableWithdraw" @click="withdrawStake">Withdraw</v-btn>
+                <v-btn color="primary" v-if="userIsContractOwner" :disabled="disableClaim" @click="claimStake">Claim</v-btn>
+              </div>
+            </v-list>
+          </v-card>
+        </template>
       </v-flex>
   </v-layout>
 </template>
@@ -23,6 +55,7 @@ export default {
   mixins: [mixin],
   data() {
     return {
+      loading: true,
       task: {
         owner: '',
         goal: '',
@@ -30,12 +63,16 @@ export default {
         supervisor: '',
         stake: 0,
         status: 0
-      }
+      },
+      statusIcons: ['ellipsis-h', 'check', 'check-double', 'times']
     }
   },
   computed: {
     status() {
       return TASK_STATUSES[this.task.status]
+    },
+    icon() {
+      return this.statusIcons[this.task.status]
     },
     userIsTaskOwner() {
       return (
@@ -63,7 +100,14 @@ export default {
       )
     }
   },
+  unmounted() {
+    Event.$off('contractStatusUpdate')
+  },
   mounted() {
+    Event.$on('contractStatusUpdate', value => {
+      this.task.status = value
+    })
+
     Event.$on('userConnected', () => {
       if (typeof this.$route.params.id === 'undefined') {
         return false
@@ -95,6 +139,8 @@ export default {
                     } else if (res) {
                       this.task.owner = res
                     }
+
+                    this.loading = false
                   }
                 )
             }
@@ -104,6 +150,8 @@ export default {
   },
   methods: {
     withdrawStake() {
+      this.loading = true
+
       window.bc
         .contract()
         .withdrawStake(
@@ -113,12 +161,16 @@ export default {
             if (err) {
               window.bc.log(err, 'error')
             } else {
-              this.task.status = 2
+              Event.$emit('contractStatusUpdate', 2)
             }
+
+            this.loading = false
           }
         )
     },
     claimStake() {
+      this.loading = true
+
       window.bc
         .contract()
         .claimStake(
@@ -128,8 +180,10 @@ export default {
             if (err) {
               window.bc.log(err, 'error')
             } else {
-              this.task.status = 3
+              Event.$emit('contractStatusUpdate', 3)
             }
+
+            this.loading = false
           }
         )
     }
