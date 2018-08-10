@@ -77,7 +77,7 @@ export default {
 
           if (err) {
             window.bc.log(err.message, 'error')
-          } else if (res) {
+          } else if (res && typeof res.args.taskId !== 'undefined') {
             let taskId = res.args.taskId.toNumber()
 
             if (!find(this.userTasks, { taskId: taskId })) {

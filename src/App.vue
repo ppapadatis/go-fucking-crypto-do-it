@@ -11,7 +11,7 @@
                 <li>The blockchain is running.</li>
                 <li>The port in your settings match with the blockchain configuration.</li>
                 <li>The smart contract compiled JSON exists and is updated.</li>
-                <li>Your MetaMask runs in the appropriate network.</li>
+                <li>Your MetaMask is unlocked and runs in the appropriate network.</li>
               </ul>
             </p>
             <p v-if="bcSmartContractAddressError">It seems like the address of the smart contract is wrong!</p>
@@ -20,7 +20,7 @@
         <router-view v-else></router-view>
       </v-container>
     </v-content>
-    <app-footer></app-footer>
+    <app-footer v-if="!bcConnectionError"></app-footer>
   </v-app>
 </template>
 

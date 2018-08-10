@@ -65,6 +65,10 @@ export default {
   },
   mounted() {
     Event.$on('userConnected', () => {
+      if (typeof this.$route.params.id === 'undefined') {
+        return false
+      }
+
       window.bc
         .contract()
         .getTask.call(

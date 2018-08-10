@@ -64,6 +64,11 @@ let mixinViews = {
     },
 
     userIsContractOwner() {
+      if (typeof window.web3 === 'undefined') {
+        this.bcConnectionError = true
+        return false
+      }
+
       return (
         window.web3.eth.coinbase.toLowerCase() ===
         this.serviceOwner.toLowerCase()

@@ -71,6 +71,10 @@ export default {
     }
   },
   mounted() {
+    if (typeof this.$route.params.id === 'undefined') {
+      return false
+    }
+
     Event.$on('userConnected', () => {
       window.bc
         .contract()
