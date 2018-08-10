@@ -192,7 +192,7 @@ export default {
           },
           (err, txHash) => {
             if (err) {
-              window.bc.log(err, 'error')
+              window.bc.log(JSON.stringify(err), 'error')
               this.transaction = false
             } else {
               this.dialog = true
@@ -208,14 +208,16 @@ export default {
   },
   mounted() {
     Event.$on('userConnected', () => {
-      window.bc.contract().minimumStake.call((err, res) => {
-        if (err) {
-          window.bc.log(err, 'error')
-        } else {
-          this.minimumStake = res.toNumber()
-          this.task.stake = this.minimumStake
-        }
-      })
+      window.bc
+        .contract()
+        .minimumStake.call({ from: window.web3.eth.coinbase }, (err, res) => {
+          if (err) {
+            window.bc.log(JSON.stringify(err), 'error')
+          } else {
+            this.minimumStake = res.toNumber()
+            this.task.stake = this.minimumStake
+          }
+        })
 
       this.subscribeContractEvent(
         'Created',
@@ -223,9 +225,9 @@ export default {
         { fromBlock: 'latest' },
         (err, response) => {
           if (err) {
-            window.bc.log(err, 'error')
+            window.bc.log(JSON.stringify(err), 'error')
           } else {
-            window.bc.log(response)
+            window.bc.log(JSON.stringify(response))
           }
 
           this.transaction = false

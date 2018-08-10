@@ -76,7 +76,7 @@ export default {
           this.fetching = true
 
           if (err) {
-            window.bc.log(err.message, 'error')
+            window.bc.log(JSON.stringify(err), 'error')
           } else if (res && typeof res.args.taskId !== 'undefined') {
             let taskId = res.args.taskId.toNumber()
 

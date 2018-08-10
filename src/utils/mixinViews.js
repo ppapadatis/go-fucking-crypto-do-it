@@ -30,23 +30,25 @@ let mixinViews = {
         if (error) {
           this.bcConnectionError = true
           this.bcConnected = false
-          window.bc.log(error, 'error')
+          window.bc.log(JSON.stringify(error), 'error')
         } else {
           try {
-            window.bc.contract().serviceOwner.call((errorReg, res) => {
-              if (errorReg) {
-                this.bcConnectionError = true
-                this.bcSmartContractAddressError = true
-                window.bc.log(errorReg, 'error')
-              } else if (res) {
-                this.userIsConnected = true
-                this.serviceOwner = res
-                Event.$emit('userConnected')
-              }
-            })
+            window.bc.contract().serviceOwner.call(
+              { from: window.web3.eth.coinbase },
+              (errorReg, res) => {
+                if (errorReg) {
+                  this.bcConnectionError = true
+                  this.bcSmartContractAddressError = true
+                  window.bc.log(JSON.stringify(errorReg), 'error')
+                } else if (res) {
+                  this.userIsConnected = true
+                  this.serviceOwner = res
+                  Event.$emit('userConnected')
+                }
+              })
           } catch (err) {
             this.bcConnectionError = true
-            window.bc.log(err, 'error')
+            window.bc.log(JSON.stringify(err), 'error')
           } finally {
             this.bcConnected = this.blockchainIsConnected()
           }

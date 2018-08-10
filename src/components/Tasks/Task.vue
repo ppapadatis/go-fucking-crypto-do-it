@@ -104,49 +104,51 @@ export default {
     Event.$off('contractStatusUpdate')
   },
   mounted() {
+    const vm = this
+
     Event.$on('contractStatusUpdate', (taskId, status) => {
-      if (typeof this.$route.params.id === 'undefined') {
+      if (typeof vm.$route.params.id === 'undefined') {
         return false
       }
 
-      if (parseInt(taskId) === parseInt(this.$route.params.id)) {
-        this.task.status = status
+      if (parseInt(taskId) === parseInt(vm.$route.params.id)) {
+        vm.task.status = status
       }
     })
 
     Event.$on('userConnected', () => {
-      if (typeof this.$route.params.id === 'undefined') {
+      if (typeof vm.$route.params.id === 'undefined') {
         return false
       }
 
       window.bc
         .contract()
         .getTask.call(
-          this.$route.params.id,
+          vm.$route.params.id,
           { from: window.web3.eth.coinbase },
           (err, res) => {
             if (err) {
-              window.bc.log(err, 'error')
+              window.bc.log(JSON.stringify(err), 'error')
             } else if (res) {
-              this.task.goal = res[0]
-              this.task.deadline = res[1].toNumber()
-              this.task.supervisor = res[2]
-              this.task.stake = res[3].toNumber()
-              this.task.status = res[4].toNumber()
+              vm.task.goal = res[0]
+              vm.task.deadline = res[1].toNumber()
+              vm.task.supervisor = res[2]
+              vm.task.stake = res[3].toNumber()
+              vm.task.status = res[4].toNumber()
 
               window.bc
                 .contract()
                 .getOwnerOfTask.call(
-                  this.$route.params.id,
+                  vm.$route.params.id,
                   { from: window.web3.eth.coinbase },
                   (err, res) => {
                     if (err) {
-                      window.bc.log(err, 'error')
+                      window.bc.log(JSON.stringify(err), 'error')
                     } else if (res) {
-                      this.task.owner = res
+                      vm.task.owner = res
                     }
 
-                    this.loading = false
+                    vm.loading = false
                   }
                 )
             }
@@ -165,7 +167,7 @@ export default {
           { from: window.web3.eth.coinbase },
           (err, res) => {
             if (err) {
-              window.bc.log(err, 'error')
+              window.bc.log(JSON.stringify(err), 'error')
             } else {
               Event.$emit('contractStatusUpdate', {
                 taskId: this.$route.params.id,
@@ -187,7 +189,7 @@ export default {
           { from: window.web3.eth.coinbase },
           (err, res) => {
             if (err) {
-              window.bc.log(err, 'error')
+              window.bc.log(JSON.stringify(err), 'error')
             } else {
               Event.$emit('contractStatusUpdate', {
                 taskId: this.$route.params.id,
