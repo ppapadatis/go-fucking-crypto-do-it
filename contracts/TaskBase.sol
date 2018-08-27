@@ -95,7 +95,7 @@ contract TaskBase is TaskAccessControl
             supervisor: _supervisor
         });
 
-        uint newTaskIndex = tasks.push(_task) - 1;
+        uint newTaskIndex = tasks.push(_task).sub(1);
 
         _transfer(0, _owner, newTaskIndex);
         emit Created(_owner, newTaskIndex, _goal, _deadline, _supervisor, _stake);
